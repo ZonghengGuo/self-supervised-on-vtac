@@ -7,12 +7,23 @@ import numpy as np
 
 dataset_path = r"D:\database\vtac"
 
-samples = []
-ys = []
-names = []
+train_samples = []
+val_samples = []
+test_samples = []
 
-# waveform and record_name
+train_names = []
+val_names = []
+test_names = []
+
+
+# get waveform and record_name
 waveform_path = os.path.join(dataset_path, "waveforms")
+
+# find which split to store(train, val, test)
+split_path = os.path.join(dataset_path, "benchmark_data_split")
+split_pd = pd.read_csv(split_path)
+split_events = split_pd["event"].astype(str).tolist()
+split_splits = split_pd["split"].astype(str).tolist()
 
 for record in tqdm(os.listdir(waveform_path)):
     record_path = os.path.join(waveform_path, record)
@@ -26,13 +37,21 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_record = wfdb.rdrecord(event_path).p_signal
         sample_name = wfdb.rdrecord(event_path).record_name
 
-        samples.append(sample_record)
-        names.append(sample_name)
-
-# get names and samples respectively
-# get the label(order by )
+        #
+        split_idx = split_events.index(sample_name)
+        if split_splits[split_idx] == "train":
+            train_samples.append(sample_record)
+            train_names.append(sample_name)
+        elif split_splits[split_idx] == "val":
+            val_samples.append(sample_record)
+            val_names.append(sample_name)
+        else:
+            test_samples.append(sample_record)
+            test_names.append(sample_name)
 
 # get label
+ys = [0] * len(names)
+
 event_labels_path = os.path.join(dataset_path, "event_labels.csv")
 df = pd.read_csv(event_labels_path)
 
@@ -41,27 +60,11 @@ decisions = df["decision"].astype(str).tolist()
 
 for event, decision in zip(events, decisions):
     idx = names.index(event)  # Get index in names
-    print(event, idx)
     ys[idx] = decision  # Assign corresponding decision
 
+# get split according to name
 
 
 
 
-
-
-
-
-
-
-
-
-# # sample_record = wfdb.rdrecord(path)
-# pprint(vars(sample_record))
-# fs = sample_record.fs
-# length = sample_record.sig_len
-# record = sample_record.p_signal
-#
-# print(f"The record has {length//fs} minutes")
-# print(record)
 
