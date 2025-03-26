@@ -1,0 +1,478 @@
+D:\code_zongheng\vtac_unsupervised\models\mlp\realtime\train.py
+{'framework': 'mlp', 'weighted_class': 4.0, 'learning_rate': 0.0001, 'adam_weight_decay': 0.005, 'batch_size': 64, 'max_epoch': 500, 'data_length': 2500}
+ClassifierMLP(
+  (classifier): Sequential(
+    (0): Flatten(start_dim=1, end_dim=-1)
+    (1): Linear(in_features=10000, out_features=1024, bias=True)
+    (2): ReLU()
+    (3): Dropout(p=0.1, inplace=False)
+    (4): Linear(in_features=1024, out_features=256, bias=True)
+    (5): ReLU()
+    (6): Dropout(p=0.1, inplace=False)
+    (7): Linear(in_features=256, out_features=64, bias=True)
+    (8): ReLU()
+    (9): Dropout(p=0.1, inplace=False)
+    (10): Linear(in_features=64, out_features=1, bias=True)
+  )
+)
+Num of Parameters: 10.519937M
+--------------------
+mlp Epoch 1
+total_loss: 1.24976 train_loss: 1.24976 eval_loss: 1.02283
+TPR: 100.0 TNR: 5.208 Score: 38.095 Acc: 38.095
+PPV: 0.359 AUC: 0.896 F1: 0.528
+--------------------
+mlp Epoch 2
+total_loss: 0.945 train_loss: 0.945 eval_loss: 0.95185
+TPR: 96.078 TNR: 26.042 Score: 47.742 Acc: 50.34
+PPV: 0.408 AUC: 0.812 F1: 0.573
+--------------------
+mlp Epoch 3
+total_loss: 0.77634 train_loss: 0.77634 eval_loss: 0.95243
+TPR: 86.275 TNR: 58.333 Score: 57.143 Acc: 68.027
+PPV: 0.524 AUC: 0.812 F1: 0.652
+--------------------
+mlp Epoch 4
+total_loss: 0.56239 train_loss: 0.56239 eval_loss: 1.05176
+TPR: 72.549 TNR: 72.917 Score: 52.709 Acc: 72.789
+PPV: 0.587 AUC: 0.771 F1: 0.649
+--------------------
+mlp Epoch 5
+total_loss: 0.31029 train_loss: 0.31029 eval_loss: 1.34646
+TPR: 68.627 TNR: 73.958 Score: 50.237 Acc: 72.109
+PPV: 0.583 AUC: 0.729 F1: 0.631
+--------------------
+mlp Epoch 6
+total_loss: 0.14173 train_loss: 0.14173 eval_loss: 1.67025
+TPR: 60.784 TNR: 70.833 Score: 43.612 Acc: 67.347
+PPV: 0.525 AUC: 0.729 F1: 0.564
+--------------------
+mlp Epoch 7
+total_loss: 0.07341 train_loss: 0.07341 eval_loss: 1.95967
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.708 F1: 0.585
+--------------------
+mlp Epoch 8
+total_loss: 0.05202 train_loss: 0.05202 eval_loss: 2.01647
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.771 F1: 0.59
+--------------------
+mlp Epoch 9
+total_loss: 0.04357 train_loss: 0.04357 eval_loss: 2.20771
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.708 F1: 0.59
+--------------------
+mlp Epoch 10
+total_loss: 0.04095 train_loss: 0.04095 eval_loss: 2.18712
+TPR: 60.784 TNR: 73.958 Score: 44.934 Acc: 69.388
+PPV: 0.554 AUC: 0.729 F1: 0.579
+--------------------
+mlp Epoch 11
+total_loss: 0.03986 train_loss: 0.03986 eval_loss: 2.1953
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.729 F1: 0.585
+--------------------
+mlp Epoch 12
+total_loss: 0.03977 train_loss: 0.03977 eval_loss: 2.21204
+TPR: 58.824 TNR: 73.958 Score: 43.723 Acc: 68.707
+PPV: 0.545 AUC: 0.75 F1: 0.566
+--------------------
+mlp Epoch 13
+total_loss: 0.03906 train_loss: 0.03906 eval_loss: 2.21675
+TPR: 58.824 TNR: 76.042 Score: 44.589 Acc: 70.068
+PPV: 0.566 AUC: 0.75 F1: 0.577
+--------------------
+mlp Epoch 14
+total_loss: 0.03896 train_loss: 0.03896 eval_loss: 2.16177
+TPR: 60.784 TNR: 77.083 Score: 46.256 Acc: 71.429
+PPV: 0.585 AUC: 0.75 F1: 0.596
+--------------------
+mlp Epoch 15
+total_loss: 0.03892 train_loss: 0.03892 eval_loss: 2.17764
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.75 F1: 0.59
+--------------------
+mlp Epoch 16
+total_loss: 0.03914 train_loss: 0.03914 eval_loss: 2.18121
+TPR: 58.824 TNR: 77.083 Score: 45.022 Acc: 70.748
+PPV: 0.577 AUC: 0.75 F1: 0.583
+--------------------
+mlp Epoch 17
+total_loss: 0.03853 train_loss: 0.03853 eval_loss: 2.13823
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.771 F1: 0.585
+--------------------
+mlp Epoch 18
+total_loss: 0.03869 train_loss: 0.03869 eval_loss: 2.07795
+TPR: 60.784 TNR: 78.125 Score: 46.696 Acc: 72.109
+PPV: 0.596 AUC: 0.771 F1: 0.602
+--------------------
+mlp Epoch 19
+total_loss: 0.03835 train_loss: 0.03835 eval_loss: 2.12039
+TPR: 60.784 TNR: 77.083 Score: 46.256 Acc: 71.429
+PPV: 0.585 AUC: 0.771 F1: 0.596
+--------------------
+mlp Epoch 20
+total_loss: 0.03821 train_loss: 0.03821 eval_loss: 2.15841
+TPR: 60.784 TNR: 77.083 Score: 46.256 Acc: 71.429
+PPV: 0.585 AUC: 0.75 F1: 0.596
+--------------------
+mlp Epoch 21
+total_loss: 0.03794 train_loss: 0.03794 eval_loss: 2.14885
+TPR: 62.745 TNR: 77.083 Score: 47.534 Acc: 72.109
+PPV: 0.593 AUC: 0.75 F1: 0.61
+--------------------
+mlp Epoch 22
+total_loss: 0.03783 train_loss: 0.03783 eval_loss: 2.13987
+TPR: 62.745 TNR: 76.042 Score: 47.085 Acc: 71.429
+PPV: 0.582 AUC: 0.771 F1: 0.604
+--------------------
+mlp Epoch 23
+total_loss: 0.03812 train_loss: 0.03812 eval_loss: 2.1421
+TPR: 62.745 TNR: 76.042 Score: 47.085 Acc: 71.429
+PPV: 0.582 AUC: 0.75 F1: 0.604
+--------------------
+mlp Epoch 24
+total_loss: 0.03792 train_loss: 0.03792 eval_loss: 2.1611
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.75 F1: 0.59
+--------------------
+mlp Epoch 25
+total_loss: 0.03776 train_loss: 0.03776 eval_loss: 2.12519
+TPR: 60.784 TNR: 77.083 Score: 46.256 Acc: 71.429
+PPV: 0.585 AUC: 0.771 F1: 0.596
+--------------------
+mlp Epoch 26
+total_loss: 0.03781 train_loss: 0.03781 eval_loss: 2.16851
+TPR: 62.745 TNR: 76.042 Score: 47.085 Acc: 71.429
+PPV: 0.582 AUC: 0.75 F1: 0.604
+--------------------
+mlp Epoch 27
+total_loss: 0.03808 train_loss: 0.03808 eval_loss: 1.98532
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.75 F1: 0.59
+--------------------
+mlp Epoch 28
+total_loss: 0.03851 train_loss: 0.03851 eval_loss: 2.20516
+TPR: 58.824 TNR: 77.083 Score: 45.022 Acc: 70.748
+PPV: 0.577 AUC: 0.792 F1: 0.583
+--------------------
+mlp Epoch 29
+total_loss: 0.03803 train_loss: 0.03803 eval_loss: 2.15856
+TPR: 58.824 TNR: 79.167 Score: 45.887 Acc: 72.109
+PPV: 0.6 AUC: 0.833 F1: 0.594
+--------------------
+mlp Epoch 30
+total_loss: 0.03872 train_loss: 0.03872 eval_loss: 2.10442
+TPR: 62.745 TNR: 75.0 Score: 46.637 Acc: 70.748
+PPV: 0.571 AUC: 0.792 F1: 0.598
+--------------------
+mlp Epoch 31
+total_loss: 0.09934 train_loss: 0.09934 eval_loss: 3.67323
+TPR: 56.863 TNR: 71.875 Score: 41.702 Acc: 66.667
+PPV: 0.518 AUC: 0.792 F1: 0.542
+--------------------
+mlp Epoch 32
+total_loss: 1.1427 train_loss: 1.1427 eval_loss: 2.52945
+TPR: 68.627 TNR: 51.042 Score: 39.81 Acc: 57.143
+PPV: 0.427 AUC: 0.688 F1: 0.526
+--------------------
+mlp Epoch 33
+total_loss: 0.8727 train_loss: 0.8727 eval_loss: 1.68425
+TPR: 64.706 TNR: 70.833 Score: 46.119 Acc: 68.707
+PPV: 0.541 AUC: 0.646 F1: 0.589
+--------------------
+mlp Epoch 34
+total_loss: 0.24007 train_loss: 0.24007 eval_loss: 2.05441
+TPR: 60.784 TNR: 71.875 Score: 44.053 Acc: 68.027
+PPV: 0.534 AUC: 0.625 F1: 0.569
+--------------------
+mlp Epoch 35
+total_loss: 0.13319 train_loss: 0.13319 eval_loss: 1.82961
+TPR: 74.51 TNR: 67.708 Score: 51.759 Acc: 70.068
+PPV: 0.551 AUC: 0.729 F1: 0.633
+--------------------
+mlp Epoch 36
+total_loss: 0.06882 train_loss: 0.06882 eval_loss: 2.22599
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 37
+total_loss: 0.04978 train_loss: 0.04978 eval_loss: 2.27516
+TPR: 64.706 TNR: 70.833 Score: 46.119 Acc: 68.707
+PPV: 0.541 AUC: 0.729 F1: 0.589
+--------------------
+mlp Epoch 38
+total_loss: 0.04536 train_loss: 0.04536 eval_loss: 2.36731
+TPR: 64.706 TNR: 71.875 Score: 46.575 Acc: 69.388
+PPV: 0.55 AUC: 0.729 F1: 0.595
+--------------------
+mlp Epoch 39
+total_loss: 0.04207 train_loss: 0.04207 eval_loss: 2.43826
+TPR: 64.706 TNR: 72.917 Score: 47.032 Acc: 70.068
+PPV: 0.559 AUC: 0.708 F1: 0.6
+--------------------
+mlp Epoch 40
+total_loss: 0.04083 train_loss: 0.04083 eval_loss: 2.47389
+TPR: 64.706 TNR: 72.917 Score: 47.032 Acc: 70.068
+PPV: 0.559 AUC: 0.729 F1: 0.6
+--------------------
+mlp Epoch 41
+total_loss: 0.03967 train_loss: 0.03967 eval_loss: 2.49032
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.729 F1: 0.606
+--------------------
+mlp Epoch 42
+total_loss: 0.03911 train_loss: 0.03911 eval_loss: 2.50053
+TPR: 66.667 TNR: 73.958 Score: 48.837 Acc: 71.429
+PPV: 0.576 AUC: 0.729 F1: 0.618
+--------------------
+mlp Epoch 43
+total_loss: 0.03875 train_loss: 0.03875 eval_loss: 2.52993
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.729 F1: 0.606
+--------------------
+mlp Epoch 44
+total_loss: 0.03809 train_loss: 0.03809 eval_loss: 2.54729
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 45
+total_loss: 0.03792 train_loss: 0.03792 eval_loss: 2.55493
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.729 F1: 0.606
+--------------------
+mlp Epoch 46
+total_loss: 0.03778 train_loss: 0.03778 eval_loss: 2.5591
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 47
+total_loss: 0.03778 train_loss: 0.03778 eval_loss: 2.55904
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 48
+total_loss: 0.03723 train_loss: 0.03723 eval_loss: 2.56862
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 49
+total_loss: 0.03719 train_loss: 0.03719 eval_loss: 2.57989
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.688 F1: 0.606
+--------------------
+mlp Epoch 50
+total_loss: 0.03688 train_loss: 0.03688 eval_loss: 2.58635
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.688 F1: 0.606
+--------------------
+mlp Epoch 51
+total_loss: 0.0367 train_loss: 0.0367 eval_loss: 2.58294
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.688 F1: 0.606
+--------------------
+mlp Epoch 52
+total_loss: 0.0369 train_loss: 0.0369 eval_loss: 2.5748
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 53
+total_loss: 0.03678 train_loss: 0.03678 eval_loss: 2.57428
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 54
+total_loss: 0.03657 train_loss: 0.03657 eval_loss: 2.57573
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.708 F1: 0.606
+--------------------
+mlp Epoch 55
+total_loss: 0.03681 train_loss: 0.03681 eval_loss: 2.57896
+TPR: 64.706 TNR: 73.958 Score: 47.489 Acc: 70.748
+PPV: 0.569 AUC: 0.688 F1: 0.606
+--------------------
+mlp Epoch 56
+total_loss: 0.03675 train_loss: 0.03675 eval_loss: 2.58316
+TPR: 62.745 TNR: 73.958 Score: 46.188 Acc: 70.068
+PPV: 0.561 AUC: 0.708 F1: 0.593
+--------------------
+mlp Epoch 57
+total_loss: 0.03663 train_loss: 0.03663 eval_loss: 2.56812
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 58
+total_loss: 0.03654 train_loss: 0.03654 eval_loss: 2.55714
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.688 F1: 0.587
+--------------------
+mlp Epoch 59
+total_loss: 0.03675 train_loss: 0.03675 eval_loss: 2.56847
+TPR: 62.745 TNR: 71.875 Score: 45.291 Acc: 68.707
+PPV: 0.542 AUC: 0.688 F1: 0.582
+--------------------
+mlp Epoch 60
+total_loss: 0.03658 train_loss: 0.03658 eval_loss: 2.54558
+TPR: 62.745 TNR: 71.875 Score: 45.291 Acc: 68.707
+PPV: 0.542 AUC: 0.688 F1: 0.582
+--------------------
+mlp Epoch 61
+total_loss: 0.03658 train_loss: 0.03658 eval_loss: 2.52082
+TPR: 62.745 TNR: 71.875 Score: 45.291 Acc: 68.707
+PPV: 0.542 AUC: 0.708 F1: 0.582
+--------------------
+mlp Epoch 62
+total_loss: 0.03659 train_loss: 0.03659 eval_loss: 2.50842
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 63
+total_loss: 0.03632 train_loss: 0.03632 eval_loss: 2.48642
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 64
+total_loss: 0.03656 train_loss: 0.03656 eval_loss: 2.48464
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 65
+total_loss: 0.03643 train_loss: 0.03643 eval_loss: 2.47317
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 66
+total_loss: 0.03647 train_loss: 0.03647 eval_loss: 2.47095
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 67
+total_loss: 0.03655 train_loss: 0.03655 eval_loss: 2.46552
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 68
+total_loss: 0.03644 train_loss: 0.03644 eval_loss: 2.44706
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 69
+total_loss: 0.03651 train_loss: 0.03651 eval_loss: 2.4344
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 70
+total_loss: 0.03649 train_loss: 0.03649 eval_loss: 2.43878
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 71
+total_loss: 0.03649 train_loss: 0.03649 eval_loss: 2.42445
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 72
+total_loss: 0.03629 train_loss: 0.03629 eval_loss: 2.40742
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 73
+total_loss: 0.03646 train_loss: 0.03646 eval_loss: 2.38812
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.708 F1: 0.574
+--------------------
+mlp Epoch 74
+total_loss: 0.03661 train_loss: 0.03661 eval_loss: 2.38902
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 75
+total_loss: 0.0366 train_loss: 0.0366 eval_loss: 2.37361
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.708 F1: 0.587
+--------------------
+mlp Epoch 76
+total_loss: 0.03659 train_loss: 0.03659 eval_loss: 2.35863
+TPR: 62.745 TNR: 73.958 Score: 46.188 Acc: 70.068
+PPV: 0.561 AUC: 0.708 F1: 0.593
+--------------------
+mlp Epoch 77
+total_loss: 0.03634 train_loss: 0.03634 eval_loss: 2.36161
+TPR: 62.745 TNR: 73.958 Score: 46.188 Acc: 70.068
+PPV: 0.561 AUC: 0.708 F1: 0.593
+--------------------
+mlp Epoch 78
+total_loss: 0.03649 train_loss: 0.03649 eval_loss: 2.37235
+TPR: 60.784 TNR: 72.917 Score: 44.493 Acc: 68.707
+PPV: 0.544 AUC: 0.729 F1: 0.574
+--------------------
+mlp Epoch 79
+total_loss: 0.03645 train_loss: 0.03645 eval_loss: 2.38339
+TPR: 60.784 TNR: 73.958 Score: 44.934 Acc: 69.388
+PPV: 0.554 AUC: 0.708 F1: 0.579
+--------------------
+mlp Epoch 80
+total_loss: 0.03649 train_loss: 0.03649 eval_loss: 2.36278
+TPR: 60.784 TNR: 73.958 Score: 44.934 Acc: 69.388
+PPV: 0.554 AUC: 0.708 F1: 0.579
+--------------------
+mlp Epoch 81
+total_loss: 0.03648 train_loss: 0.03648 eval_loss: 2.35052
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.708 F1: 0.585
+--------------------
+mlp Epoch 82
+total_loss: 0.03637 train_loss: 0.03637 eval_loss: 2.33692
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.729 F1: 0.585
+--------------------
+mlp Epoch 83
+total_loss: 0.03655 train_loss: 0.03655 eval_loss: 2.33558
+TPR: 62.745 TNR: 75.0 Score: 46.637 Acc: 70.748
+PPV: 0.571 AUC: 0.729 F1: 0.598
+--------------------
+mlp Epoch 84
+total_loss: 0.03644 train_loss: 0.03644 eval_loss: 2.31913
+TPR: 62.745 TNR: 73.958 Score: 46.188 Acc: 70.068
+PPV: 0.561 AUC: 0.729 F1: 0.593
+--------------------
+mlp Epoch 85
+total_loss: 0.03643 train_loss: 0.03643 eval_loss: 2.27436
+TPR: 62.745 TNR: 72.917 Score: 45.74 Acc: 69.388
+PPV: 0.552 AUC: 0.75 F1: 0.587
+--------------------
+mlp Epoch 86
+total_loss: 0.03659 train_loss: 0.03659 eval_loss: 2.2712
+TPR: 62.745 TNR: 75.0 Score: 46.637 Acc: 70.748
+PPV: 0.571 AUC: 0.75 F1: 0.598
+--------------------
+mlp Epoch 87
+total_loss: 0.03669 train_loss: 0.03669 eval_loss: 2.28084
+TPR: 62.745 TNR: 76.042 Score: 47.085 Acc: 71.429
+PPV: 0.582 AUC: 0.729 F1: 0.604
+--------------------
+mlp Epoch 88
+total_loss: 0.03651 train_loss: 0.03651 eval_loss: 2.28375
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.708 F1: 0.585
+--------------------
+mlp Epoch 89
+total_loss: 0.03646 train_loss: 0.03646 eval_loss: 2.27837
+TPR: 58.824 TNR: 75.0 Score: 44.156 Acc: 69.388
+PPV: 0.556 AUC: 0.729 F1: 0.571
+--------------------
+mlp Epoch 90
+total_loss: 0.03642 train_loss: 0.03642 eval_loss: 2.24781
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.75 F1: 0.585
+--------------------
+mlp Epoch 91
+total_loss: 0.03653 train_loss: 0.03653 eval_loss: 2.26233
+TPR: 60.784 TNR: 75.0 Score: 45.374 Acc: 70.068
+PPV: 0.564 AUC: 0.75 F1: 0.585
+--------------------
+mlp Epoch 92
+total_loss: 0.03676 train_loss: 0.03676 eval_loss: 2.35063
+TPR: 60.784 TNR: 76.042 Score: 45.815 Acc: 70.748
+PPV: 0.574 AUC: 0.729 F1: 0.59

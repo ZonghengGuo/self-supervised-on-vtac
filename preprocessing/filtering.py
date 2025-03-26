@@ -19,7 +19,7 @@ import sys
 
 split = sys.argv[1]
 
-samples, ys, names = torch.load(f"data/out/lead_selected/{split}.pt")
+samples, ys, names = torch.load(f"D:/database/vtac/out/lead_selected/{split}.pt")
 num_channels = samples.shape[1]
 
 SAMPLING_FREQ = 250
@@ -102,7 +102,9 @@ output_samples = torch.stack(output_samples, dim=1)
 
 output_samples = output_samples.float()
 
+output_dir = r"D:\database\vtac\out"
+
 torch.save(
     (output_samples, ys, names),
-    f"data/out/{split}-filtered.pt",
+    f"{output_dir}/{split}-filtered.pt",
 )

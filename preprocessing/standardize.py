@@ -9,7 +9,7 @@ from typing import Tuple
 
 
 def compute_mean_std():
-    samples, _, _ = torch.load("data/out/train-filtered.pt")
+    samples, _, _ = torch.load("D:/database/vtac/out/train-filtered.pt")
     samples = samples[:, :, 72500:75000]
     mu = []
     sigma = []
@@ -41,7 +41,7 @@ def create_splits(mu, sigma):
         None
     """
     for split in ["train", "val", "test"]:
-        samples, ys, names = torch.load(f"data/out/{split}-filtered.pt")
+        samples, ys, names = torch.load(f"D:/database/vtac/out/{split}-filtered.pt")
         num_channels = samples.shape[1]
         for i in range(num_channels):
             mu_i = mu[i]
@@ -53,7 +53,7 @@ def create_splits(mu, sigma):
                     samples[x, i] = (samples[x, i] - mu_i) / sigma_i
 
         samples = samples.float()
-        torch.save((samples, ys, names), f"data/out/population-norm/{split}.pt")
+        torch.save((samples, ys, names), f"D:/database/vtac/out/population-norm/{split}.pt")
 
 
 def create_individual_splits():
@@ -62,7 +62,7 @@ def create_individual_splits():
     Saves the output to data/out/sample-norm/{split}.pt
     """
     for split in ["train", "val", "test"]:
-        samples, ys, names = torch.load(f"data/out/{split}-filtered.pt")
+        samples, ys, names = torch.load(f"D:/database/vtac/out/{split}-filtered.pt")
         num_channels = samples.shape[1]
         for i in range(num_channels):
             for x in track(
@@ -74,7 +74,7 @@ def create_individual_splits():
                     samples[x, i] = (samples[x, i] - mu_i) / sigma_i
 
         samples = samples.float()
-        torch.save((samples, ys, names), f"data/out/sample-norm/{split}.pt")
+        torch.save((samples, ys, names), f"D:/database/vtac/out/sample-norm/{split}.pt")
 
 
 if __name__ == "__main__":
