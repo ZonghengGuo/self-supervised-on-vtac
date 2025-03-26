@@ -37,6 +37,7 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_record = wfdb.rdrecord(event_path).p_signal
         sample_name = wfdb.rdrecord(event_path).record_name
 
+        #
         split_idx = split_events.index(sample_name)
         if split_splits[split_idx] == "train":
             train_samples.append(sample_record)
@@ -60,9 +61,6 @@ decisions = df["decision"].astype(str).tolist()
 for event, decision in zip(events, decisions):
     idx = names.index(event)  # Get index in names
     ys[idx] = decision  # Assign corresponding decision
-
-# get split according to name
-
 
 
 
