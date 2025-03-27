@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 import numpy as np
 
-dataset_path = r"D:\database\vtac"
+dataset_path = "data"
 
 train_samples = []
 val_samples = []
@@ -110,7 +110,7 @@ test_ys = torch.tensor([1 if x == 'True' else 0 for x in test_ys], dtype=torch.i
 # test_names = torch.tensor(np.array(test_names))
 
 # Save the updated file with decisions
-output_dir = r"D:\database\vtac\out\lead_selected"
+output_dir = "data/out/lead_selected"
 
 torch.save((train_samples, train_ys, train_names), f"{output_dir}/train.pt")
 print(f"Finish training dataset saved!!!")

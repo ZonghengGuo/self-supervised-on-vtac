@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.westc.gpuhub.com:33259 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+    <option name="confirmBeforeUploading" value="false" />
     <serverData>
       <paths name="root@connect.nmb1.seetacloud.com:16831 password">
         <serverdata>
@@ -16,6 +17,14 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="root@connect.westc.gpuhub.com:33259 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/vtac_unsupervised" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
