@@ -75,7 +75,7 @@ def train_model(batch, model, loss_ce, device, weight):
     random_s = torch.stack(random_s).to(device)
     # use the last 10s signal as model input
     signal_train = signal_train[:, :, alarm_time - length : alarm_time].to(device)
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
 
     # model prediction, feature of alarm signal, feature of randomly selected signal
     Y_train_prediction, s_f, random_s = model(signal_train, random_s)
@@ -112,7 +112,6 @@ def train_model(batch, model, loss_ce, device, weight):
             )
         )
     )
-
     return loss, differ_loss * weight, Y_train_prediction, y_train
 
 
@@ -125,13 +124,15 @@ def eval_model(
 
     signal_train = signal_train[:, :, alarm_time - length : alarm_time].to(device)
 
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
+
 
     Y_train_prediction = model(signal_train)
 
     loss = loss_ce(Y_train_prediction, y_train)
 
     return loss, Y_train_prediction, y_train
+
 
 
 def evaluation(

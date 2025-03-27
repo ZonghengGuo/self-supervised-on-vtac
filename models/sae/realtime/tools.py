@@ -55,7 +55,7 @@ class Dataset_train(Dataset):
 def train_model(batch, model, loss_ce, device, weight):
     signal_train, y_train = batch
     signal_train = signal_train[:, :, 72500:75000].to(device)
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
     Y_train_prediction, reconstructed_signal = model(signal_train)
     loss = loss_ce(Y_train_prediction, y_train)
     criterion = nn.MSELoss()
@@ -67,7 +67,7 @@ def eval_model(batch, model, loss_ce, device):
     signal_train, y_train = batch
     signal_train = signal_train[:, :, 72500:75000].to(device)
 
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
 
     # prediction
     Y_train_prediction, _ = model(signal_train)

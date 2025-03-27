@@ -100,13 +100,16 @@ for run, path in tqdm(run_to_model_path.items()):
     model.load_state_dict(torch.load(path, map_location=torch.device("cuda")))
     model = model.eval().to("cuda")
 
-    y_pred_val = model(X_val)
-    y_pred_test = model(X_test)
+    y_pred_val,_ = model(X_val)
+    y_pred_test,_ = model(X_test)
+
+    y_pred_val = torch.nan_to_num(y_pred_val)
+    y_pred_test = torch.nan_to_num(y_pred_test)
+
 
     thresh, val_score = find_best_threshold_parallel(
         torch.sigmoid(y_pred_val).cpu().detach(), y_val.cpu().detach().numpy()
     )
-    print(thresh, val_score)
     types_TP, types_FP, types_TN, types_FN = (0, 0, 0, 0)
     for pred, gt in zip(y_pred_test, y_test):
         types_TP, types_FP, types_TN, types_FN = evaluate_raise_threshold(

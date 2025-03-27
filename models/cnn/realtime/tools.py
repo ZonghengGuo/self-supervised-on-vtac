@@ -72,11 +72,10 @@ def train_model(batch, model, loss_ce, device, weight):
 
     # use the last 10s signal as model input
     signal_train = signal_train[:, :, 72500:75000].to(device)
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
 
     # model prediction, feature of alarm signal, feature of randomly selected signal
     Y_train_prediction, s_f, random_s = model(signal_train, random_s)
-
     feature_size = s_f.shape[1]
     # calculate loss
     loss = loss_ce(Y_train_prediction, y_train)
@@ -118,7 +117,7 @@ def eval_model(batch, model, loss_ce, device):
     # alarm signa
     signal_train = signal_train[:, :, 72500:75000].to(device)
 
-    y_train = y_train.to(device)
+    y_train = y_train.float().view(-1, 1).to(device)
 
     # prediction
     Y_train_prediction = model(signal_train)

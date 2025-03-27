@@ -120,6 +120,7 @@ if __name__ == "__main__":
         pos_weight=torch.tensor([params_training["weighted_class"]]).to(device)
     )
 
+
     num_epochs = params_training["max_epoch"]
 
     results_trainloss = []
@@ -193,6 +194,8 @@ if __name__ == "__main__":
             ppv = 1
         else:
             ppv = types_TP / (types_TP + types_FP)
+
+
         auc = sklearn.metrics.roc_auc_score(
             y_test.cpu().detach().numpy(), Y_eval_prediction.cpu().detach().numpy()
         )

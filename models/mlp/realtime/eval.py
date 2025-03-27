@@ -40,9 +40,9 @@ def max_file_in_directories(path):
     return max_files
 
 print(run_to_model_path := max_file_in_directories(model_path))
-X_val, y_val, name_val = torch.load("data/out/sample-norm/val.pt")
+X_val, y_val, name_val = torch.load("data/out/sample-norm/val.pt", weights_only=True)
 X_val = X_val[:, :, 72500:75000].to(torch.device("cuda"))
-X_test, y_test, name_test = torch.load("data/out/sample-norm/test.pt")
+X_test, y_test, name_test = torch.load("data/out/sample-norm/test.pt", weights_only=True)
 X_test = X_test[:, :, 72500:75000].to(torch.device("cuda"))
 
 
@@ -95,7 +95,7 @@ runs = []
 
 for run, path in tqdm(run_to_model_path.items()):
     model = ClassifierMLP(10000)
-    model.load_state_dict(torch.load(path, map_location=torch.device("cuda")))
+    model.load_state_dict(torch.load(path, map_location=torch.device("cuda"), weights_only=True))
     model = model.eval().to("cuda")
 
     y_pred_val = model(X_val)
@@ -123,6 +123,7 @@ for run, path in tqdm(run_to_model_path.items()):
     else:
         ppv = types_TP / (types_TP + types_FP)
     cpu_device = torch.device("cpu")
+
     auc = roc_auc_score(y_test.cpu().numpy(), y_pred_test.cpu().detach().numpy())
     f1 = types_TP / (types_TP + 0.5 * (types_FP + types_FN))
     clipboard_data = f"{acc}\t{score}\t{TPR}\t{TNR}\t{ppv}\t{auc}\t{f1}\t\t"

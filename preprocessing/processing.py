@@ -37,7 +37,7 @@ for record in tqdm(os.listdir(waveform_path)):
         required_samples = []
 
         event_path = os.path.join(record_path, event_id)
-        sample_record = wfdb.rdrecord(event_path).p_signal  #Todo: (90000, 4), (90000, 5), (90000, 6) how many leads use or store
+        sample_record = wfdb.rdrecord(event_path).p_signal
         sample_name = wfdb.rdrecord(event_path).record_name
 
         sig_names = wfdb.rdrecord(event_path).sig_name
@@ -54,10 +54,22 @@ for record in tqdm(os.listdir(waveform_path)):
         index_ppg = sig_names.index("PLETH")
         index_abp = sig_names.index("ABP")
 
-        required_samples.append(sample_record[:, index_2])
-        required_samples.append(sample_record[:, index_5])
-        required_samples.append(sample_record[:, index_ppg])
-        required_samples.append(sample_record[:, index_abp])
+        # nan_count = np.isnan(sample_record[:, index_2]).sum()
+        # print(f"index_2 NaN 的总数: {nan_count.item()/len(sample_record[:, index_2])}")
+        #
+        # nan_count = np.isnan(sample_record[:, index_5]).sum()
+        # print(f" index_5NaN 的总数: {nan_count.item()/len(sample_record[:, index_5])}")
+        #
+        # nan_count = np.isnan(sample_record[:, index_ppg]).sum()
+        # print(f"index_ppg NaN 的总数: {nan_count.item()/len(sample_record[:, index_ppg])}")
+        #
+        # nan_count = np.isnan(sample_record[:, index_abp]).sum()
+        # print(f"index_abp NaN 的总数: {nan_count.item()/len(sample_record[:, index_abp])}")
+
+        required_samples.append(np.nan_to_num(sample_record[:, index_2], nan=0.0))
+        required_samples.append(np.nan_to_num(sample_record[:, index_5], nan=0.0))
+        required_samples.append(np.nan_to_num(sample_record[:, index_ppg], nan=0.0))
+        required_samples.append(np.nan_to_num(sample_record[:, index_abp], nan=0.0))
 
         # split train, val and test
         split_idx = split_events.index(sample_name)

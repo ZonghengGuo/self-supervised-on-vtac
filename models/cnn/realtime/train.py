@@ -31,11 +31,11 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.chdir("../dataset/sample-norm")
+    os.chdir("data/out/sample-norm")
     # load preprocessed dataset
-    trainset_x, trainset_y, train_names = torch.load("train.pt")
-    valset_x, valset_y, val_names = torch.load("val.pt")
-    testset_x, testset_y, test_names = torch.load("test.pt")
+    trainset_x, trainset_y, train_names = torch.load("train.pt", weights_only=True)
+    valset_x, valset_y, val_names = torch.load("val.pt", weights_only=True)
+    testset_x, testset_y, test_names = torch.load("test.pt", weights_only=True)
     num_channels = trainset_x.shape[1]
 
     zero_nans = lambda x: torch.nan_to_num(x, 0)
@@ -194,6 +194,7 @@ if __name__ == "__main__":
             ppv = 1
         else:
             ppv = types_TP / (types_TP + types_FP)
+
         auc = sklearn.metrics.roc_auc_score(
             y_test.cpu().detach().numpy(), Y_eval_prediction.cpu().detach().numpy()
         )
