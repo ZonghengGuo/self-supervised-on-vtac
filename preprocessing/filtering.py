@@ -19,7 +19,7 @@ import sys
 
 split = sys.argv[1]
 
-samples, ys, names = torch.load(f"data/out/lead_selected/{split}.pt")
+samples, ys = torch.load(f"../../database/vtac/out/lead_selected/{split}.pt", weights_only=False)
 num_channels = samples.shape[1]
 
 SAMPLING_FREQ = 250
@@ -78,7 +78,6 @@ def filter_abp_channel(data):
     tempfilt = filtfilt(b2, a2, tempfilt)
     return tempfilt
 
-
 output_samples = []
 
 # Free up memory when we're done with the data
@@ -102,9 +101,9 @@ output_samples = torch.stack(output_samples, dim=1)
 
 output_samples = output_samples.float()
 
-output_dir = "data/out/filtered"
+output_dir = "../../database/vtac/out/filtered"
 
 torch.save(
-    (output_samples, ys, names),
+    (output_samples, ys),
     f"{output_dir}/{split}-filtered.pt",
 )

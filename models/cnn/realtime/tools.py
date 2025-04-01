@@ -3,7 +3,9 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset
-
+import os
+import uuid
+import matplotlib.pyplot as plt
 
 def get_logger(
     logpath, filepath, package_files=[], displaying=True, saving=True, debug=False
@@ -56,9 +58,9 @@ def train_model(batch, model, loss_ce, device, weight):
     batch_size = len(signal_train)
     length = 2500
     # samples with a true alarm
-    true_alarm_index = (y_train == 1).squeeze()
+    true_alarm_index = (y_train == 1)
     # samples with a false alarm
-    false_alarm_index = (y_train != 1).squeeze()
+    false_alarm_index = (y_train != 1)
 
     true_alarm_batch = sum(true_alarm_index)
     false_alarm_batch = sum(false_alarm_index)
@@ -76,6 +78,27 @@ def train_model(batch, model, loss_ce, device, weight):
 
     # model prediction, feature of alarm signal, feature of randomly selected signal
     Y_train_prediction, s_f, random_s = model(signal_train, random_s)
+
+    import matplotlib.pyplot as plt
+
+    def plot_signal(signal_train, index=0):
+        # Select the signal at the given index
+        signal = signal_train[index].cpu().detach().numpy()
+
+        # Plot the signal
+        plt.figure(figsize=(12, 6))
+        for i in range(signal.shape[0]):
+            plt.plot(signal[i], label=f'Channel {i + 1}')
+
+        plt.title(f'Signal at index {index}')
+        plt.xlabel('Time')
+        plt.ylabel('Amplitude')
+        plt.legend()
+        plt.show()
+
+    # Example usage
+    plot_signal(signal_train, index=0)
+
     feature_size = s_f.shape[1]
     # calculate loss
     loss = loss_ce(Y_train_prediction, y_train)

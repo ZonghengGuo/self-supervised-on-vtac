@@ -6,10 +6,31 @@ from rich import print
 from rich.progress import track
 from matplotlib import pyplot as plt
 from typing import Tuple
+import numpy as np
 
+def plot_four_channels(original, standardized):
+    plt.figure(figsize=(12, 16))
+
+    for i in range(4):
+        plt.subplot(4, 2, 2*i + 1)
+        plt.plot(original[i], label=f'Original Channel {i}')
+        plt.title(f'Original Channel {i}')
+        plt.xlabel('Time')
+        plt.ylabel('Amplitude')
+        plt.legend()
+
+        plt.subplot(4, 2, 2*i + 2)
+        plt.plot(standardized[i], label=f'Standardized Channel {i}')
+        plt.title(f'Standardized Channel {i}')
+        plt.xlabel('Time')
+        plt.ylabel('Amplitude')
+        plt.legend()
+
+    plt.tight_layout()
+    plt.show()
 
 def compute_mean_std():
-    samples, _, _ = torch.load("data/out/filtered/train-filtered.pt")
+    samples, _ = torch.load("../../database/vtac/out/filtered/train-filtered.pt", weights_only=False)
     samples = samples[:, :, 72500:75000]
     mu = []
     sigma = []
@@ -41,7 +62,7 @@ def create_splits(mu, sigma):
         None
     """
     for split in ["train", "val", "test"]:
-        samples, ys, names = torch.load(f"data/out/filtered/{split}-filtered.pt")
+        samples, ys = torch.load(f"../../database/vtac/out/filtered/{split}-filtered.pt", weights_only=False)
         num_channels = samples.shape[1]
         for i in range(num_channels):
             mu_i = mu[i]
@@ -53,7 +74,7 @@ def create_splits(mu, sigma):
                     samples[x, i] = (samples[x, i] - mu_i) / sigma_i
 
         samples = samples.float()
-        torch.save((samples, ys, names), f"data/out/population-norm/{split}.pt")
+        torch.save((samples, ys), f"../../database/vtac/out/population-norm/{split}.pt")
 
 
 def create_individual_splits():
@@ -62,7 +83,10 @@ def create_individual_splits():
     Saves the output to data/out/sample-norm/{split}.pt
     """
     for split in ["train", "val", "test"]:
-        samples, ys, names = torch.load(f"data/out/filtered/{split}-filtered.pt")
+        samples, ys = torch.load(f"../../database/vtac/out/filtered/{split}-filtered.pt", weights_only=False)
+
+        oringinal_samples = samples.clone()
+
         num_channels = samples.shape[1]
         for i in range(num_channels):
             for x in track(
@@ -74,7 +98,12 @@ def create_individual_splits():
                     samples[x, i] = (samples[x, i] - mu_i) / sigma_i
 
         samples = samples.float()
-        torch.save((samples, ys, names), f"data/out/sample-norm/{split}.pt")
+
+        for i in range(samples.shape[0]):
+            plot_four_channels(oringinal_samples[i, :, 0:15000], samples[i, :, 0:15000])
+
+
+        torch.save((samples, ys), f"../../database/vtac/out/sample-norm/{split}.pt")
 
 
 if __name__ == "__main__":

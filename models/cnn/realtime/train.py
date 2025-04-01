@@ -31,11 +31,11 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.chdir("data/out/sample-norm")
+    os.chdir("../../database/vtac/out/population-norm")
     # load preprocessed dataset
-    trainset_x, trainset_y, train_names = torch.load("train.pt", weights_only=True)
-    valset_x, valset_y, val_names = torch.load("val.pt", weights_only=True)
-    testset_x, testset_y, test_names = torch.load("test.pt", weights_only=True)
+    trainset_x, trainset_y = torch.load("train.pt", weights_only=True)
+    valset_x, valset_y = torch.load("val.pt", weights_only=True)
+    testset_x, testset_y = torch.load("test.pt", weights_only=True)
     num_channels = trainset_x.shape[1]
 
     zero_nans = lambda x: torch.nan_to_num(x, 0)
@@ -43,6 +43,17 @@ if __name__ == "__main__":
     trainset_x = zero_nans(trainset_x)
     testset_x = zero_nans(testset_x)
     valset_x = zero_nans(valset_x)
+
+
+    def check_nan_in_dataset(dataset):
+        for i in range(len(dataset)):
+            signal, label = dataset[i]
+            if torch.isnan(signal).any() or torch.isnan(label).any():
+                print(f"NaN value found in sample {i}")
+                return True
+        print("No NaN values found in the dataset")
+        return False
+
 
     batch_size = int(sys.argv[1])
     lr = float(sys.argv[2])
@@ -91,6 +102,21 @@ if __name__ == "__main__":
     dataset_train = Dataset_train(trainset_x, trainset_y)
     dataset_eval = Dataset_train(valset_x, valset_y)
     dataset_test = Dataset_train(testset_x, testset_y)
+
+    # Check the length of the dataset
+    print(f"Length of dataset_train: {len(dataset_train)}")
+    print(f"Length of dataset_eval: {len(dataset_eval)}")
+    print(f"Length of dataset_test: {len(dataset_test)}")
+
+
+    def check_nan_in_dataset(dataset):
+        for i in range(len(dataset)):
+            signal, label = dataset[i]
+            if torch.isnan(signal).any() or torch.isnan(label).any():
+                print(f"NaN value found in sample {i}")
+                return True
+        print("No NaN values found in the dataset")
+        return False
 
     params = {
         "batch_size": params_training["batch_size"],
@@ -149,6 +175,8 @@ if __name__ == "__main__":
                 weight=params_training["differ_loss_weight"],
             )
 
+            # print("Y_train_prediction", Y_train_prediction)
+
             train_loss += loss.item()
             differ_loss_val += differ_loss.item()
             loss += differ_loss
@@ -194,6 +222,7 @@ if __name__ == "__main__":
             ppv = 1
         else:
             ppv = types_TP / (types_TP + types_FP)
+        # print("Y_eval_prediction", Y_eval_prediction)
 
         auc = sklearn.metrics.roc_auc_score(
             y_test.cpu().detach().numpy(), Y_eval_prediction.cpu().detach().numpy()
