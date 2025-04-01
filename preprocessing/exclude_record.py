@@ -76,6 +76,7 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_length = record.sig_len
         sig_names = record.sig_name
 
+        # Todo change all waveform
         if "ABP" not in sig_names:
             continue
 
