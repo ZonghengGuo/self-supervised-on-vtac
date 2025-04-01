@@ -76,7 +76,7 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_length = record.sig_len
         sig_names = record.sig_name
 
-        # Todo change all waveform
+        # Todo change all available signals to "II", "V", "PLETH", "ABP"
         if "ABP" not in sig_names:
             continue
 
@@ -90,11 +90,13 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_record = np.nan_to_num(sample_record, nan=0.0)
 
         # Select the required channels
+        index_ii = sig_names.index("II")
+        index_v = sig_names.index("V")
         index_ppg = sig_names.index("PLETH")
         index_abp = sig_names.index("ABP")
 
-        required_samples.append(sample_record[:, 0])
-        required_samples.append(sample_record[:, 1])
+        required_samples.append(sample_record[:, index_ii])
+        required_samples.append(sample_record[:, index_v])
         required_samples.append(sample_record[:, index_ppg])
         required_samples.append(sample_record[:, index_abp])
 
