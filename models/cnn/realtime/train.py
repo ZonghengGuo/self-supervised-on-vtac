@@ -31,7 +31,7 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.chdir("../../database/vtac/out/population-norm")
+    os.chdir("data/out/lead_selected")
     # load preprocessed dataset
     trainset_x, trainset_y = torch.load("train.pt", weights_only=True)
     valset_x, valset_y = torch.load("val.pt", weights_only=True)
@@ -75,7 +75,6 @@ if __name__ == "__main__":
     current_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
 
     # save path of trained model
-
     tuning_name = (
         f"{batch_size}-{lr}-{dl}-{dropout_probability}-{positive_class_weight}-{SEED}"
     )

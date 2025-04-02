@@ -71,33 +71,16 @@ def train_model(batch, model, loss_ce, device, weight):
     for i, j in enumerate(sample_index):
         random_s.append(signal_train[i, :, j : j + length])
     random_s = torch.stack(random_s).to(device)
+    random_s = random_s.to(torch.float32)
 
     # use the last 10s signal as model input
-    signal_train = signal_train[:, :, 72500:75000].to(device)
+    signal_train = signal_train[:, :, 72500:75000].contiguous().to(torch.float32).to(device)
     y_train = y_train.float().view(-1, 1).to(device)
+
+    model = model.to(torch.float32)
 
     # model prediction, feature of alarm signal, feature of randomly selected signal
     Y_train_prediction, s_f, random_s = model(signal_train, random_s)
-
-    import matplotlib.pyplot as plt
-
-    def plot_signal(signal_train, index=0):
-        # Select the signal at the given index
-        signal = signal_train[index].cpu().detach().numpy()
-
-        # Plot the signal
-        plt.figure(figsize=(12, 6))
-        for i in range(signal.shape[0]):
-            plt.plot(signal[i], label=f'Channel {i + 1}')
-
-        plt.title(f'Signal at index {index}')
-        plt.xlabel('Time')
-        plt.ylabel('Amplitude')
-        plt.legend()
-        plt.show()
-
-    # Example usage
-    plot_signal(signal_train, index=0)
 
     feature_size = s_f.shape[1]
     # calculate loss
@@ -138,7 +121,7 @@ def eval_model(batch, model, loss_ce, device):
     signal_train, y_train = batch
     length = 2500
     # alarm signa
-    signal_train = signal_train[:, :, 72500:75000].to(device)
+    signal_train = signal_train[:, :, 72500:75000].to(torch.float32).to(device)
 
     y_train = y_train.float().view(-1, 1).to(device)
 

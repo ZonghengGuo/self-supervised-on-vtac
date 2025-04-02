@@ -6,7 +6,7 @@ class CNNClassifier(nn.Module):
     def __init__(
         self,
         inputs,
-        window_sizes=[3, 5, 7, 9],
+        window_sizes=[25, 50, 100, 150],
         feature_size=64,
         window=90000,
         hidden_signal=128,
@@ -21,12 +21,12 @@ class CNNClassifier(nn.Module):
         self.convs = nn.ModuleList(
             [
                 nn.Sequential(
-                    nn.Dropout(p=0.2),
-                    nn.Conv1d(inputs, feature_size, kernel_size=h, stride=3, padding=1),
+                    nn.Dropout(p=0.8),
+                    nn.Conv1d(inputs, feature_size, kernel_size=h, stride=5, padding=1),
                     nn.BatchNorm1d(feature_size),
                     nn.ReLU(),
                     nn.Conv1d(
-                        feature_size, feature_size, kernel_size=h, stride=3, padding=1
+                        feature_size, feature_size, kernel_size=h, stride=5, padding=1
                     ),
                     nn.BatchNorm1d(feature_size),
                     nn.AdaptiveMaxPool1d(1),

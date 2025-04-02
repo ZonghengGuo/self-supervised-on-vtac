@@ -1,57 +1,81 @@
 # read records but exclude without "PLETH", "ABP", get the record_id_lists
-
+import numpy as np
 import wfdb
 import os
 from tqdm import tqdm
 import pandas as pd
-import torch
-import numpy as np
+from scipy.signal import butter, filtfilt, iirnotch
 
-dataset_path = "../../database/vtac"
+
+SAMPLING_FREQ = 250
+POWERLINE_FREQ = 60
+
+def butter_bandpass(lowcut, highcut, fs, order=2):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype="band")
+    return b, a
+
+
+def butter_highpass(cutoff, fs, order=2):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype="high", analog=False)
+    return b, a
+
+
+def butter_lowpass(cutoff, fs, order=2):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype="low", analog=False)
+    return b, a
+
+
+def notch_filter(freq, Q, fs):
+    b, a = iirnotch(freq, Q, fs)
+    return b, a
+
+
+def filter_ecg_channel(data):
+    b, a = butter_highpass(1.0, SAMPLING_FREQ)
+    b2, a2 = butter_lowpass(30.0, SAMPLING_FREQ)
+    tempfilt = filtfilt(b, a, data)
+    tempfilt = filtfilt(b2, a2, tempfilt)
+    b_notch, a_notch = notch_filter(POWERLINE_FREQ, 30, SAMPLING_FREQ)
+    tempfilt = filtfilt(b_notch, a_notch, tempfilt)
+    return tempfilt
+
+
+def filter_ppg_channel(data):
+    b_notch, a_notch = notch_filter(POWERLINE_FREQ, 30, SAMPLING_FREQ)
+    tempfilt = filtfilt(b_notch, a_notch, data)
+    N_bp, Wn_bp = butter(1, [0.5, 5], btype="band", analog=False, fs=SAMPLING_FREQ)
+    tempfilt = filtfilt(N_bp, Wn_bp, tempfilt)
+    return tempfilt
+
+
+def filter_abp_channel(data):
+    b_notch, a_notch = notch_filter(POWERLINE_FREQ, 30, SAMPLING_FREQ)
+    tempfilt = filtfilt(b_notch, a_notch, data)
+    b2, a2 = butter_lowpass(16.0, SAMPLING_FREQ)
+    tempfilt = filtfilt(b2, a2, tempfilt)
+    return tempfilt
+
+
+def min_max_norm(data, feature_range=(0, 1)):
+    min_val = np.min(data)
+    max_val = np.max(data)
+
+    if max_val == min_val:  # Avoid division by zero
+        return np.zeros_like(data) if feature_range[0] == 0 else np.full_like(data, feature_range[0])
+
+    scale = feature_range[1] - feature_range[0]
+    return feature_range[0] + (data - min_val) * scale / (max_val - min_val)
+
+
+dataset_path = "data"
 save_path = dataset_path + "/out/raw"
-
-# import matplotlib.pyplot as plt
-#
-# def plot_sample_record(sample_record, index_ppg, index_abp):
-#     # Select the signals
-#     signal_0 = sample_record[0:15000, 0]
-#     signal_1 = sample_record[0:15000, 1]
-#     pleth = sample_record[0:15000, index_ppg]
-#     abp = sample_record[0:15000, index_abp]
-#
-#     # Plot the signals
-#     plt.figure(figsize=(12, 8))
-#
-#     plt.subplot(4, 1, 1)
-#     plt.plot(signal_0, label='Signal 0')
-#     plt.title('Signal 0')
-#     plt.xlabel('Time')
-#     plt.ylabel('Amplitude')
-#     plt.legend()
-#
-#     plt.subplot(4, 1, 2)
-#     plt.plot(signal_1, label='Signal 1')
-#     plt.title('Signal 1')
-#     plt.xlabel('Time')
-#     plt.ylabel('Amplitude')
-#     plt.legend()
-#
-#     plt.subplot(4, 1, 3)
-#     plt.plot(pleth, label='PLETH')
-#     plt.title('PLETH')
-#     plt.xlabel('Time')
-#     plt.ylabel('Amplitude')
-#     plt.legend()
-#
-#     plt.subplot(4, 1, 4)
-#     plt.plot(abp, label='ABP')
-#     plt.title('ABP')
-#     plt.xlabel('Time')
-#     plt.ylabel('Amplitude')
-#     plt.legend()
-#
-#     plt.tight_layout()
-#     plt.show()
 
 # get waveform and label
 waveform_path = os.path.join(dataset_path, "waveforms")
@@ -76,31 +100,32 @@ for record in tqdm(os.listdir(waveform_path)):
         sample_length = record.sig_len
         sig_names = record.sig_name
 
-        # Todo change all available signals to "II", "V", "PLETH", "ABP"
-        if "ABP" not in sig_names:
-            continue
-
-        if "PLETH" not in sig_names:
-            continue
-
+        # At least needs 4 channels
         if len(sig_names) < 4:
             continue
 
-        # Set missing values to 0
+        # Impute
         sample_record = np.nan_to_num(sample_record, nan=0.0)
 
-        # Select the required channels
-        index_ii = sig_names.index("II")
-        index_v = sig_names.index("V")
-        index_ppg = sig_names.index("PLETH")
-        index_abp = sig_names.index("ABP")
+        required_samples = []
 
-        required_samples.append(sample_record[:, index_ii])
-        required_samples.append(sample_record[:, index_v])
-        required_samples.append(sample_record[:, index_ppg])
-        required_samples.append(sample_record[:, index_abp])
-
-        # plot_sample_record(sample_record, index_ppg, index_abp)
+        candidates = ["ABP", "PLETH", "II", "V", "aVR", "III", "I", "V2", "MCL", "aVF", "aVL"]
+        test = []
+        for candi_sig_name in candidates:
+            if len(required_samples) < 4:
+                if candi_sig_name in sig_names:
+                    index_candi = sig_names.index(candi_sig_name)
+                    single_lead = sample_record[:, index_candi]
+                    if candi_sig_name == "ABP":
+                        single_lead = filter_abp_channel(single_lead)
+                    elif candi_sig_name == "PLETH":
+                        single_lead = filter_ppg_channel(single_lead)
+                    else:
+                        single_lead = filter_ecg_channel(single_lead)
+                    single_lead = min_max_norm(single_lead)
+                    required_samples.append(single_lead)
+            else:
+                break
 
         required_samples = np.array(required_samples)
 
