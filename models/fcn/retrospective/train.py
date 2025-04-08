@@ -31,11 +31,11 @@ if __name__ == "__main__":
         torch.backends.cudnn.benchmark = False
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    os.chdir("../dataset/sample-norm")
+    os.chdir("../../database/vtac/out/lead_selected")
     # load preprocessed dataset
-    trainset_x, trainset_y, train_names = torch.load("train.pt")
-    valset_x, valset_y, val_names = torch.load("val.pt")
-    testset_x, testset_y, test_names = torch.load("test.pt")
+    trainset_x, trainset_y = torch.load("train.pt")
+    valset_x, valset_y = torch.load("val.pt")
+    testset_x, testset_y = torch.load("test.pt")
     num_channels = trainset_x.shape[1]
 
     zero_nans = lambda x: torch.nan_to_num(x, 0)

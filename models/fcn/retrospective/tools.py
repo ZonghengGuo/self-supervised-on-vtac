@@ -41,8 +41,8 @@ class Dataset_train(Dataset):
         # 'Initialization'
         # self.X = torch.load(path)
         # self.X = pickle.load(open(path, 'rb'))
-        self.strain = signal_train  # 信号
-        self.ytrain = y_train  # 真假
+        self.strain = signal_train
+        self.ytrain = y_train
 
     def __len__(self):
         # 'Denotes the total number of samples'
@@ -75,7 +75,8 @@ def train_model(batch, model, loss_ce, device, weight):
     random_s = torch.stack(random_s).to(device)
     # use the last 10s signal as model input
     signal_train = signal_train[:, :, alarm_time - length : alarm_time].to(device)
-    y_train = y_train.to(device)
+    y_train = y_train.view(-1, 1).float().to(device)
+
 
     # model prediction, feature of alarm signal, feature of randomly selected signal
     Y_train_prediction, s_f, random_s = model(signal_train, random_s)

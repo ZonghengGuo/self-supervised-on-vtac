@@ -74,7 +74,7 @@ def min_max_norm(data, feature_range=(0, 1)):
     return feature_range[0] + (data - min_val) * scale / (max_val - min_val)
 
 
-dataset_path = "data"
+dataset_path = "../../database/vtac"
 save_path = dataset_path + "/out/raw"
 
 # get waveform and label

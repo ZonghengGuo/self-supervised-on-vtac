@@ -35,6 +35,8 @@ class FCN(nn.Module):
         )
 
     def forward(self, signal, random_s=None):  # x (batch, time_step, input_size)
+        signal = signal.float()
+        random_s = random_s.float()
         signal = self.convs(signal).squeeze(-1)
         signal = signal.view(-1, signal.size(1))
         s_f = self.signal_feature(signal)
