@@ -7,7 +7,6 @@ import losses
 import numpy as np
 from tqdm import tqdm
 import json
-
 import matplotlib.pyplot as plt
 
 # 保存 loss 曲线图
@@ -32,7 +31,7 @@ batch_size = 256
 backbone = "FCN"
 pair_data_path = "data/mimic/pair_segments"
 lr = 1e-4
-epochs = 50
+epochs = 100
 ratio_train_val = 0.9
 model_save_path = "model_saved"
 
@@ -80,6 +79,10 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
 losses_list = []
 val_losses_list = []
 
+best_loss = float('inf')
+patience = 10
+epochs_no_improve = 0
+
 for epoch in range(0, epochs):
     model.train()
     losses_per_epoch = []
@@ -106,12 +109,11 @@ for epoch in range(0, epochs):
                 loss.item()))
     print(f"Training loss {np.mean(losses_per_epoch)}")
     losses_list.append(np.mean(losses_per_epoch))
-    # wandb.log({'loss': losses_list[-1]}, step=epoch)
     scheduler.step()
 
     # Validation
     model_is_training = model.training
-    model.eval()  # Set the model to evaluation mode
+    model.eval()
 
     with torch.no_grad():
         losses_val = []
@@ -128,10 +130,19 @@ for epoch in range(0, epochs):
     model.train()
     model.train(model_is_training)
 
-    if losses_list[-1] == min(losses_list):
+    # 保存模型
+    if val_losses_list[-1] < best_loss:
         print("Model is going to save")
-        print(f"last loss: {losses_list[-1]} | min loss: {min(losses_list)}")
-        # if not os.path.exists('{}'.format(LOG_DIR)):
-        #     os.makedirs('{}'.format(LOG_DIR))
+        print(f"last loss: {val_losses_list[-1]} | best loss: {best_loss}")
+        best_loss = val_losses_list[-1]
+        epochs_no_improve = 0
         torch.save({'model_state_dict':model.state_dict()}, '{}/{}_.pth'.format(model_save_path, backbone))
+    else:
+        epochs_no_improve += 1
+        print(f"No improvement for {epochs_no_improve} epochs.")
+
+    # Early Stopping
+    if epochs_no_improve >= patience:
+        print("Early stopping triggered")
+        break
 plot_losses(losses_list, val_losses_list, save_path='train_val_loss_curve.png')

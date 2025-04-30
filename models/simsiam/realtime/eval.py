@@ -12,7 +12,6 @@ from nets import FinetuneModel
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../pre_train')))
 from model import SimSiam, FCN
 
-
 model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.csv")
 
@@ -29,6 +28,12 @@ def max_file_in_directories(path):
     directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
     for directory in directories:
         full_directory_path = os.path.join(path, directory, "score")
+
+        if not os.path.exists(full_directory_path):
+            print(f"Warning: score folder not found in {directory}, skipping.")
+            max_files[directory] = None
+            continue
+
         files = [f for f in os.listdir(full_directory_path) if os.path.isfile(os.path.join(full_directory_path, f))]
 
         if files:  # If there are files in the directory
@@ -44,11 +49,12 @@ def max_file_in_directories(path):
 
     return max_files
 
+
 run_to_model_path = max_file_in_directories(model_path)
 print(run_to_model_path)
-X_val, y_val = torch.load("data/out/lead_selected/val.pt")
+X_val, y_val = torch.load("data/out/lead_selected/val.pt", weights_only=True)
 X_val = X_val[:, :, 67500:75000].to(torch.device("cuda"))
-X_test, y_test = torch.load("data/out/lead_selected/test.pt")
+X_test, y_test = torch.load("data/out/lead_selected/test.pt", weights_only=True)
 X_test = X_test[:, :, 67500:75000].to(torch.device("cuda"))
 
 
@@ -87,6 +93,7 @@ def find_best_threshold_parallel(y_pred, y_test):
 
     return best_thresh, best_score
 
+
 accs = []
 scores = []
 TPRs = []
@@ -100,10 +107,10 @@ runs = []
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 for run, path in tqdm(run_to_model_path.items()):
-    path = "models/simsiam/realtime/models/64-0.0001-0.1-3.54-1.0-1/score/232.pt"
+    path = "models/simsiam/realtime/models/64-0.0001-0.1-4.0-1.5-1/score/249.pt"
 
     fcn_encoder = FCN()
-    
+
     simsiam_model = SimSiam(
         dim=64,
         pred_dim=32,
@@ -111,8 +118,8 @@ for run, path in tqdm(run_to_model_path.items()):
         single_source_mode=False,
         encoder=fcn_encoder
     )
-    
-    checkpoint = torch.load("model_saved/ResNet18_.pth")
+
+    checkpoint = torch.load("model_saved/FCN_.pth", weights_only=True)
     simsiam_model.load_state_dict(checkpoint["model_state_dict"])
 
     print("Load model successfully!!!")
@@ -133,20 +140,18 @@ for run, path in tqdm(run_to_model_path.items()):
     thresh, val_score = find_best_threshold_parallel(
         torch.sigmoid(y_pred_val).cpu().detach(), y_val.cpu().detach().numpy()
     )
-    
+
     types_TP, types_FP, types_TN, types_FN = (0, 0, 0, 0)
     types_TP, types_FP, types_TN, types_FN = evaluation_test(
         y_pred_test, y_test, types_TP, types_FP, types_TN, types_FN
     )
-    
+
     acc = 100 * (types_TP + types_TN) / (types_TP + types_TN + types_FP + types_FN)
     score = (
-        100 * (types_TP + types_TN) / (types_TP + types_TN + types_FP + 5 * types_FN)
+            100 * (types_TP + types_TN) / (types_TP + types_TN + types_FP + 5 * types_FN)
     )
     TPR = types_TP / (types_TP + types_FN)
     TNR = types_TN / (types_TN + types_FP)
-
-    
 
     if types_TP + types_FP == 0:
         ppv = 1
@@ -156,7 +161,7 @@ for run, path in tqdm(run_to_model_path.items()):
     auc = roc_auc_score(y_test.cpu().numpy(), y_pred_test.cpu().detach().numpy())
     f1 = types_TP / (types_TP + 0.5 * (types_FP + types_FN))
     print(auc, score)
-    
+
     runs.append(run)
     accs.append(acc)
     scores.append(score)
@@ -183,7 +188,6 @@ data = {
     "auc": aucs,
     "accuracy": accs,
 }
-
 
 df = pd.DataFrame(data)
 df.to_csv(out_path, index=False)

@@ -6,9 +6,17 @@ from tqdm import tqdm
 import pandas as pd
 from scipy.signal import butter, filtfilt, iirnotch
 
-
 SAMPLING_FREQ = 250
 POWERLINE_FREQ = 60
+
+def interpolate_nan_multichannel(sig):
+    # sig: shape (channels, time)
+    interpolated = []
+    for channel in sig:
+        interpolated_channel = pd.Series(channel).interpolate(method='linear', limit_direction='both').to_numpy()
+        interpolated.append(interpolated_channel)
+    return np.array(interpolated)
+
 
 def butter_bandpass(lowcut, highcut, fs, order=2):
     nyq = 0.5 * fs
@@ -74,7 +82,7 @@ def min_max_norm(data, feature_range=(0, 1)):
     return feature_range[0] + (data - min_val) * scale / (max_val - min_val)
 
 
-dataset_path = "../../database/vtac"
+dataset_path = "data"
 save_path = dataset_path + "/out/raw"
 
 # get waveform and label
@@ -101,31 +109,46 @@ for record in tqdm(os.listdir(waveform_path)):
         sig_names = record.sig_name
 
         # At least needs 4 channels
-        if len(sig_names) < 4:
-            continue
+        # if len(sig_names) < 4:
+        #     continue
 
         # Impute
-        sample_record = np.nan_to_num(sample_record, nan=0.0)
+        sample_record = interpolate_nan_multichannel(sample_record)
 
         required_samples = []
 
-        candidates = ["ABP", "PLETH", "II", "V", "aVR", "III", "I", "V2", "MCL", "aVF", "aVL"]
-        test = []
-        for candi_sig_name in candidates:
-            if len(required_samples) < 4:
-                if candi_sig_name in sig_names:
-                    index_candi = sig_names.index(candi_sig_name)
-                    single_lead = sample_record[:, index_candi]
-                    if candi_sig_name == "ABP":
-                        single_lead = filter_abp_channel(single_lead)
-                    elif candi_sig_name == "PLETH":
-                        single_lead = filter_ppg_channel(single_lead)
-                    else:
-                        single_lead = filter_ecg_channel(single_lead)
-                    single_lead = min_max_norm(single_lead)
-                    required_samples.append(single_lead)
-            else:
-                break
+        # candidates = ["ABP", "PLETH", "II", "V", "aVR", "III", "I", "V2", "MCL", "aVF", "aVL"]
+        # test = []
+        # for candi_sig_name in candidates:
+        #     if len(required_samples) < 4:
+        #         if candi_sig_name in sig_names:
+        #             index_candi = sig_names.index(candi_sig_name)
+        #             single_lead = sample_record[:, index_candi]
+        #             if candi_sig_name == "ABP":
+        #                 single_lead = filter_abp_channel(single_lead)
+        #             elif candi_sig_name == "PLETH":
+        #                 single_lead = filter_ppg_channel(single_lead)
+        #             else:
+        #                 single_lead = filter_ecg_channel(single_lead)
+        #             single_lead = min_max_norm(single_lead)
+        #             required_samples.append(single_lead)
+        #     else:
+        #         break
+
+        if "PLETH" not in sig_names or "II" not in sig_names :
+            continue
+
+        index_ppg = sig_names.index("PLETH")
+        index_ii = sig_names.index("II")
+        # index_v = sig_names.index("V")
+
+        wave_ppg = sample_record[:, index_ppg]
+        wave_ii = sample_record[:, index_ii]
+        # wave_v = sample_record[:, index_v]
+
+        required_samples.append(min_max_norm(filter_ppg_channel(wave_ppg)))
+        required_samples.append(min_max_norm(filter_ecg_channel(wave_ii)))
+        # required_samples.append(filter_ecg_channel(wave_v))
 
         required_samples = np.array(required_samples)
 

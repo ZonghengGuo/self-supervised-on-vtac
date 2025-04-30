@@ -20,7 +20,6 @@ from nets import FinetuneModel
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../pre_train')))
 from model import SimSiam, FCN
 
-
 if __name__ == "__main__":
     SEED = 1 if len(sys.argv) <= 6 else int(sys.argv[6])
     os.environ["PYTHONHASHSEED"] = str(SEED)
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     )
 
     if not any(
-        os.path.exists(os.path.join(model_path, x)) for x in ["", "auc", "score"]
+            os.path.exists(os.path.join(model_path, x)) for x in ["", "auc", "score"]
     ):
         # os.makedirs(model_path)
         os.makedirs(os.path.join(model_path, "auc"))
@@ -107,7 +106,7 @@ if __name__ == "__main__":
     iterator_heldout = DataLoader(dataset_test, **params)
 
     fcn_encoder = FCN()
-    
+
     simsiam_model = SimSiam(
         dim=64,
         pred_dim=32,
@@ -115,8 +114,8 @@ if __name__ == "__main__":
         single_source_mode=False,
         encoder=fcn_encoder
     )
-    
-    checkpoint = torch.load("../../../model_saved/ResNet18_.pth")
+
+    checkpoint = torch.load("../../../model_saved/FCN_.pth")
     simsiam_model.load_state_dict(checkpoint["model_state_dict"])
 
     print("Load model successfully!!!")
@@ -161,7 +160,7 @@ if __name__ == "__main__":
         train_TP, train_FP, train_TN, train_FN = 0, 0, 0, 0
 
         for b, batch in enumerate(
-            iterator_train, start=1
+                iterator_train, start=1
         ):  # signal_train, alarm_train, y_train, signal_test, alarm_test, y_test = batch
             loss, differ_loss, Y_train_prediction, y_train = train_model(
                 batch,
@@ -205,9 +204,9 @@ if __name__ == "__main__":
         eval_loss /= b
         acc = 100 * (types_TP + types_TN) / (types_TP + types_TN + types_FP + types_FN)
         score = (
-            100
-            * (types_TP + types_TN)
-            / (types_TP + types_TN + types_FP + 5 * types_FN)
+                100
+                * (types_TP + types_TN)
+                / (types_TP + types_TN + types_FP + 5 * types_FN)
         )
         TPR = 100 * types_TP / (types_TP + types_FN)
         TNR = 100 * types_TN / (types_TN + types_FP)
@@ -216,7 +215,6 @@ if __name__ == "__main__":
             ppv = 1
         else:
             ppv = types_TP / (types_TP + types_FP)
-
 
         auc = sklearn.metrics.roc_auc_score(
             y_test.cpu().detach().numpy(), Y_eval_prediction.cpu().detach().numpy()

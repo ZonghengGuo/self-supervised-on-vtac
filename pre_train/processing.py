@@ -12,7 +12,8 @@ import os
 from rrSQI import rrSQI
 from QRS import peak_detection
 import requests
-
+from ppg_SQI import ppg_SQI
+import pandas as pd
 
 # get  waveform, classify it into 5 classes
 # 5min = 15 pairs, I need 10k pairs, in total 3500 min
@@ -29,6 +30,8 @@ slide_segment_time = 30  # ~ seconds window size
 nan_limit = 0.1
 original_fs = 125  # mimic3wfdb ecg fs
 required_minutes = 3500
+
+
 # target_fs = setting["target_fs"]  # downsample fs
 
 
@@ -66,14 +69,30 @@ def min_max_normalize(signal, feature_range=(-1, 1)):
     return normalized_signal
 
 
-
 def set_nan_to_zero(sig):
     zero_segment = np.nan_to_num(sig, nan=0.0)
     return zero_segment
 
 
+def interpolate_nan_multichannel(sig):
+    # sig: shape (channels, time)
+    interpolated = []
+    for channel in sig:
+        interpolated_channel = pd.Series(channel).interpolate(method='linear', limit_direction='both').to_numpy()
+        interpolated.append(interpolated_channel)
+    return np.array(interpolated)
+
+
 def is_any_constant_signal(slide_segment):
     return np.any(np.all(slide_segment == slide_segment[:, [0]], axis=1))
+
+
+def scale_ppg_score(qua_ppg):
+    # 拉伸到 0-1
+    qua_ppg_scaled = (qua_ppg - 0.5) / 0.3
+    # 防止超出范围（可选）
+    qua_ppg_scaled = max(0, min(qua_ppg_scaled, 1))
+    return qua_ppg_scaled
 
 
 # Select the suitable segments with 'II' lead and time length > f{"shortest_minutes"}
@@ -106,16 +125,15 @@ def process_record(record):
         print('-------------------')
         print(f"Start preprocessing {record_path}/{segment}")
 
-
         # Check if the segments include required lead
         sigs_leads = segment_metadata.sig_name
 
-        if len(sigs_leads) < 3:
+        if len(sigs_leads) < 2:
             print("Not enough channels, skip..")
             continue
 
         if not all(x in sigs_leads for x in required_sigs):
-            print(f'{sigs_leads} is missing signal of II, V and PLETH')
+            print(f'{sigs_leads} is missing signal of II, PLETH')
             continue
 
         # check if the segments is longer than f{shortest_minutes}
@@ -138,13 +156,11 @@ def process_record(record):
         seg_sig = wfdb.rdrecord(segment, pn_dir=record_path)
         sig_ppg_index = seg_sig.sig_name.index('PLETH')
         sig_ii_index = seg_sig.sig_name.index('II')
-        sig_v_index = seg_sig.sig_name.index('V')
 
         sig_ppg = seg_sig.p_signal[:, sig_ppg_index]
         sig_ii = seg_sig.p_signal[:, sig_ii_index]
-        sig_v = seg_sig.p_signal[:, sig_v_index]
 
-        multi_channel_signal = np.stack((sig_ppg, sig_ii, sig_v), axis=0)
+        multi_channel_signal = np.stack((sig_ppg, sig_ii), axis=0)
 
         # setting
         slide_segment_length = slide_segment_time * original_fs
@@ -166,14 +182,14 @@ def process_record(record):
                 print(f"the sequence is stable, not a signal")
                 continue
 
-            # set nan as zero then normalize
-            slide_segment = set_nan_to_zero(slide_segment)
-            slide_segment = min_max_normalize(slide_segment)
+            # interpolate
+            slide_segment = interpolate_nan_multichannel(slide_segment)
             print("set nan value to zero and normalize signal")
 
-
+            lead_ppg_segments = slide_segment[0, :]
             lead_ii_segments = slide_segment[1, :]
-            # quality assessment
+
+            # ECG quality assessment
             try:
                 peaks = peak_detection(lead_ii_segments, original_fs)
                 print("find peaks")
@@ -181,8 +197,13 @@ def process_record(record):
                 print(f"Warning: {e}, skipping this segment.")
                 continue
 
-            _, _, qua = rrSQI(lead_ii_segments, peaks, original_fs)
-            print("quality of the signal is:", qua)
+            _, _, qua_ii = rrSQI(lead_ii_segments, peaks, original_fs)
+
+            # PPG quality assessment
+            qua_ppg = ppg_SQI(lead_ppg_segments, original_fs)
+            qua_ppg = scale_ppg_score(qua_ppg)
+
+            qua = (qua_ii + qua_ppg) / 2
 
             if qua >= 0.9:
                 label = "Excellent"
@@ -197,10 +218,12 @@ def process_record(record):
 
             # Todo: give classification to qua
             qua_labels.append(label)
-            print(f"The quality of ECG segment in {str(record.name)}.npy_{i} is: {qua}")
+            print(f"The quality in {str(record.name)}.npy_{i} is: {qua}")
 
             # downsample to 40Hz
             # slide_segment = downsample(slide_segment, original_fs, target_fs)
+
+            slide_segment = min_max_normalize(slide_segment)
 
             slide_segments.append(slide_segment)
 

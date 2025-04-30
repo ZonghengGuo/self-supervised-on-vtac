@@ -4,10 +4,9 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-dataset_path = "../../database/vtac"
+dataset_path = "data"
 save_path = os.path.join(dataset_path, "out/raw")
 split_path = os.path.join(dataset_path, "benchmark_data_split.csv")
-output_dir = os.path.join(dataset_path, "out/lead_selected")
 
 # Read the benchmark data split CSV
 split_df = pd.read_csv(split_path)
@@ -43,6 +42,7 @@ for _, row in tqdm(split_df.iterrows()):
             test_samples.append(record)
             test_labels.append(label)
 
+print(len(train_samples), len(val_samples), len(test_samples))
 
 # Convert lists to tensors
 train_samples = torch.tensor(np.array(train_samples))
@@ -54,7 +54,7 @@ val_labels = torch.tensor(np.array(val_labels))
 test_labels = torch.tensor(np.array(test_labels))
 
 # Save the datasets
-
+output_dir = "data/out/lead_selected"
 os.makedirs(output_dir, exist_ok=True)
 
 torch.save((train_samples, train_labels), os.path.join(output_dir, "train.pt"))
