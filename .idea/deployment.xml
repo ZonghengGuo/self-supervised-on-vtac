@@ -1,23 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="root@connect.westb.seetacloud.com:12487 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="root@connect.nmb1.seetacloud.com:16831 password">
+      <paths name="root@connect.cqa1.seetacloud.com:31127 password">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="root@connect.westb.seetacloud.com:43789 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@connect.westc.gpuhub.com:33259 password">
+      <paths name="root@connect.westb.seetacloud.com:12487 password">
         <serverdata>
           <mappings>
             <mapping deploy="/root/autodl-tmp/vtac_unsupervised" local="$PROJECT_DIR$" />

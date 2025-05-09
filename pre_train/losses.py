@@ -75,3 +75,48 @@ class ByolLoss(nn.Module):
         y = F.normalize(y, dim=-1, p=2)
         loss = 2 - 2 * (x * y).sum(dim=-1)
         return loss
+
+
+class KLLoss(nn.Module):
+    """
+    KL-Divergence symmetric loss between two distributions
+    Used in here for knowledge distillation
+    """
+
+    def __init__(self):
+        super(KLLoss, self).__init__()
+        self.similarity_f = nn.CosineSimilarity(dim=2)
+
+    def forward(self, zxs, zys, zxt, zyt, temperature=0.1):
+        sim_s = self.similarity_f(zxs.unsqueeze(1), zys.unsqueeze(0)) / temperature
+        sim_s = F.softmax(sim_s, dim=1)
+        sim_t = self.similarity_f(zxt.unsqueeze(1), zyt.unsqueeze(0)) / temperature
+        sim_t = F.softmax(sim_t, dim=1)
+        loss_s = F.kl_div(sim_s.log(), sim_t.detach(), reduction='batchmean')
+        loss_t = F.kl_div(sim_t.log(), sim_s.detach(), reduction='batchmean')
+        return loss_s, loss_t
+
+
+class SimpleDINOLoss(nn.Module):
+    def __init__(self, out_dim, teacher_temp=0.04, student_temp=0.1, center_momentum=0.9):
+        super().__init__()
+        self.teacher_temp = teacher_temp
+        self.student_temp = student_temp
+        self.center_momentum = center_momentum
+        self.register_buffer("center", torch.zeros(1, out_dim))
+
+    def forward(self, student_output, teacher_output):
+        student_out = F.log_softmax(student_output / self.student_temp, dim=-1)
+
+        teacher_out = F.softmax((teacher_output - self.center) / self.teacher_temp, dim=-1).detach()
+
+        loss = torch.sum(-teacher_out * student_out, dim=-1).mean()
+
+        self.update_center(teacher_output)
+
+        return loss
+
+    @torch.no_grad()
+    def update_center(self, teacher_output):
+        batch_center = torch.mean(teacher_output, dim=0, keepdim=True)
+        self.center = self.center * self.center_momentum + batch_center * (1 - self.center_momentum)

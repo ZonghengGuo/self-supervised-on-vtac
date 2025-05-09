@@ -10,6 +10,18 @@ qualities_path = "data/mimic/label"
 
 pairs_save_path = "data/mimic/pair_segments"
 
+quality_rank = {
+    "Excellent": 0,
+    "Good": 1,
+    "Acceptable": 2,
+    "Poor": 3,
+    "Bad": 4
+}
+
+def compare_quality(q1, q2):
+    return quality_rank[q1] < quality_rank[q2]
+
+
 for ecg_subject_title in os.listdir(ecg_segments_path):
     ecg_subject_title_path = os.path.join(ecg_segments_path, ecg_subject_title)
     for ecg_subject_name in os.listdir(ecg_subject_title_path):
@@ -43,7 +55,15 @@ for ecg_subject_title in os.listdir(ecg_segments_path):
                         continue
 
                     # # save pairs in dict value, and key is according to diff
-                    pair = [segments[i], segments[j]]
+
+                    # if ith-quality is better than j-th quality, then save [segments[i], segments[j]]
+                    # Reversly, if j-th is better, save [segments[j], segments[i]]
+                    # the first segment is relatively good signal, and second is bad.
+                    if compare_quality(qualities[i], qualities[j]):
+                        pair = [segments[i], segments[j]]
+                    else:
+                        pair = [segments[j], segments[i]]
+
                     file_name = f"{ecg_subject_title}_{ecg_subject_name}_pair_{i}_{j}.npy"
                     file_path = os.path.join(pairs_save_path, file_name)
                     np.save(file_path, pair)

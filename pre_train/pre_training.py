@@ -1,142 +1,142 @@
 import torch
-from model import SimSiam, FCN
-import os
+from model import SimSiam, FCN, ResNet50, TransformerEncoder
 from dataset import SiamDataset
 from torch.utils.data import random_split, DataLoader
 import losses
 import numpy as np
 from tqdm import tqdm
-import json
-import matplotlib.pyplot as plt
+import utils
 
-# 保存 loss 曲线图
-def plot_losses(train_losses, val_losses, save_path='loss_curve.png'):
-    plt.figure(figsize=(10, 6))
-    plt.plot(train_losses, label='Train Loss')
-    plt.plot(val_losses, label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training and Validation Loss Curve')
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(save_path)
-    plt.close()
 
 
 device = 'cuda'
 
 # Setting
-batch_size = 256
-backbone = "FCN"
+batch_size = 16
+backbone = "Transformer"
 pair_data_path = "data/mimic/pair_segments"
 lr = 1e-4
-epochs = 100
+min_lr = 1e-6
+epochs = 500
 ratio_train_val = 0.9
 model_save_path = "model_saved"
+warmup_epochs = 10
+weight_decay = 0.04
+weight_decay_end = 0.4
+momentum_teacher = 0.996
 
 
-# model = SimSiam(encoder = backbone,projector=True)
-# based on FCN
-# 初始化 FCN 编码器
-fcn_encoder = FCN()
-
-# 初始化 SimSiam
-model = SimSiam(
-    dim=64,  # FCN projector 输出的维度
-    pred_dim=32,
-    predictor=True,
-    single_source_mode=False,
-    encoder=fcn_encoder
-)
-
-model = model.to(device)
-
+# ======================== set dataset and dataloader =====================
 dataset = SiamDataset(pair_data_path)
 
-train_size = int(ratio_train_val * len(dataset))
-val_size = len(dataset) - train_size
-
-train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
-print("Total numbers of training pairs:", len(train_dataset))
-print("Total numbers of validation pairs:", len(val_dataset))
+print("Total numbers of pre-training pairs:", len(dataset))
 print("Using the model of:", backbone)
 
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
-criterion = losses.NegativeCosineSimLoss().to(device)
+# ================== building teacher and student models =================
+# Initiate Student and Teacher encoder
+student = TransformerEncoder()
+teacher = TransformerEncoder()
 
-param_groups = [
-    {'params': list(set(model.parameters()))}
-]
+student, teacher = student.cuda(), teacher.cuda()
 
-opt = torch.optim.Adam(param_groups, lr=lr)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
+# teacher and student start with the same weights
+teacher.load_state_dict(student.state_dict())
+
+# Frozen teacher, only use backward train student
+for p in teacher.parameters():
+    p.requires_grad = False
 
 
+# =================== build loss, optimizer and schedulers =================
+# self-distillation loss function
+self_distill_loss = losses.SimpleDINOLoss(out_dim=64).cuda()
+
+# build adam optimizer
+params_groups = utils.get_params_groups(student)
+optimizer = torch.optim.Adam(params_groups ,lr=lr)
+
+# init schedulers
+lr_schedule = utils.cosine_scheduler(
+    lr * (batch_size * utils.get_world_size()) / 256.,  # linear scaling rule
+    min_lr,
+    epochs, len(dataloader),
+    warmup_epochs=warmup_epochs,
+)
+
+wd_schedule = utils.cosine_scheduler(
+    weight_decay,
+    weight_decay_end,
+    epochs, len(dataloader),
+)
+# momentum parameter is increased to 1. during training with a cosine schedule
+momentum_schedule = utils.cosine_scheduler(momentum_teacher, 1,
+                                           epochs, len(dataloader))
+print(f"Loss, optimizer and schedulers ready.")
+
+# ====================== Start Training =========================
 losses_list = []
-val_losses_list = []
 
 best_loss = float('inf')
-patience = 10
+patience = 15
 epochs_no_improve = 0
 
 for epoch in range(0, epochs):
-    model.train()
     losses_per_epoch = []
+    pbar = tqdm(enumerate(dataloader))
 
-    pbar = tqdm(enumerate(train_dataloader))
+    for batch_idx, (x1, x2) in tqdm(enumerate(dataloader)):
+        for i, param_group in enumerate(optimizer.param_groups):
+            param_group["lr"] = lr_schedule[batch_idx]
+            if i == 0:  # only the first group is regularized
+                param_group["weight_decay"] = wd_schedule[batch_idx]
 
-    for batch_idx, (x1, x2) in tqdm(enumerate(train_dataloader)):
         x1, x2 = x1.to("cuda", dtype=torch.float32), x2.to("cuda", dtype=torch.float32)
-        p1, p2, z1, z2 = model(x1, x2)
-        loss = criterion(p1, p2, z1, z2)
+        teacher_output = teacher(x1) # good signal as input of teacher
+        student_output = student(x2) # bad signal as input of student
 
-        opt.zero_grad()
+        loss = self_distill_loss(student_output, teacher_output)
+
+        # student update
+        optimizer.zero_grad()
         loss.backward()
+        optimizer.step()
 
-        torch.nn.utils.clip_grad_value_(model.parameters(), 10)
+        # EMA update for the teacher
+        with torch.no_grad():
+            m = momentum_schedule[batch_idx]  # momentum parameter
+            for param_q, param_k in zip(student.parameters(), teacher.parameters()):
+                param_k.data.mul_(m).add_((1 - m) * param_q.detach().data)
 
         losses_per_epoch.append(loss.cpu().data.numpy())
-        opt.step()
 
         pbar.set_description(
             'Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f}'.format(
-                epoch, batch_idx + 1, len(train_dataloader),
-                100. * batch_idx / len(train_dataloader),
+                epoch, batch_idx + 1, len(dataloader),
+                100. * batch_idx / len(dataloader),
                 loss.item()))
+
     print(f"Training loss {np.mean(losses_per_epoch)}")
     losses_list.append(np.mean(losses_per_epoch))
-    scheduler.step()
-
-    # Validation
-    model_is_training = model.training
-    model.eval()
-
-    with torch.no_grad():
-        losses_val = []
-        pbar = tqdm(enumerate(val_dataloader))
-        for batch_idx, (x1, x2) in pbar:
-            x1, x2 = x1.to(device, dtype=torch.float32), x2.to(device, dtype=torch.float32)
-            p1, p2, z1, z2 = model(x1, x2)
-            loss = criterion(p1, p2, z1, z2)
-            losses_val.append(loss.cpu().data.numpy())
-        print(f"Validation loss {np.mean(losses_val)}")
-        val_loss_epoch = np.mean(losses_val)
-        val_losses_list.append(val_loss_epoch)
-
-    model.train()
-    model.train(model_is_training)
 
     # 保存模型
-    if val_losses_list[-1] < best_loss:
+    if losses_list[-1] < best_loss:
         print("Model is going to save")
-        print(f"last loss: {val_losses_list[-1]} | best loss: {best_loss}")
-        best_loss = val_losses_list[-1]
+        print(f"last loss: {losses_list[-1]} | best loss: {best_loss}")
+        best_loss = losses_list[-1]
         epochs_no_improve = 0
-        torch.save({'model_state_dict':model.state_dict()}, '{}/{}_.pth'.format(model_save_path, backbone))
+
+        # save teacher model
+        torch.save(
+            {'model_state_dict': teacher.state_dict()},
+            f'{model_save_path}/{backbone}_teacher.pth'
+        )
+
+        # torch.save(
+        #     {'model_state_dict': student.state_dict()},
+        #     f'{model_save_path}/{backbone}_student.pth'
+        # )
     else:
         epochs_no_improve += 1
         print(f"No improvement for {epochs_no_improve} epochs.")
@@ -145,4 +145,5 @@ for epoch in range(0, epochs):
     if epochs_no_improve >= patience:
         print("Early stopping triggered")
         break
-plot_losses(losses_list, val_losses_list, save_path='train_val_loss_curve.png')
+
+utils.plot_losses(losses_list, save_path='train_val_loss_curve.png')

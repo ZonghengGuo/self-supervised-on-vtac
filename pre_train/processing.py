@@ -88,9 +88,7 @@ def is_any_constant_signal(slide_segment):
 
 
 def scale_ppg_score(qua_ppg):
-    # 拉伸到 0-1
     qua_ppg_scaled = (qua_ppg - 0.5) / 0.3
-    # 防止超出范围（可选）
     qua_ppg_scaled = max(0, min(qua_ppg_scaled, 1))
     return qua_ppg_scaled
 

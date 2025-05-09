@@ -41,7 +41,6 @@ class SiamDataset:
             signal = signal + shift
 
         if np.random.rand() < 0.3:
-            # 遮挡一段
             T = signal.shape[1]
             mask_len = np.random.randint(T // 20, T // 10)
             start = np.random.randint(0, T - mask_len)
@@ -54,11 +53,9 @@ class SiamDataset:
         x1 = sample[0]  # shape: (3, 3750)
         x2 = sample[1]
 
-        # 上采样
         x1 = self.upsample_signal(x1)
         x2 = self.upsample_signal(x2)
 
-        # 数据增强
         if self.augment:
             x1 = self.augment_signal(x1)
             x2 = self.augment_signal(x2)

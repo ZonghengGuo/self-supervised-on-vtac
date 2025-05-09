@@ -74,6 +74,15 @@ def ppg_SQI(ppg, fs=125):
                 0.1 * rel_power_score
         )
 
+        print(f"SNR Score: {snr_score}")
+        print(f"Rhythm Score: {rhythm_score}")
+        print(f"Amplitude Score: {amp_score}")
+        print(f"Autocorrelation Score: {autocorr_score}")
+        print(f"Entropy Score: {entropy_score}")
+        print(f"Perfusion Score: {perfusion_score}")
+        print(f"Skewness Score: {skewness_score}")
+        print(f"Relative Power Score: {rel_power_score}")
+
         return np.clip(quality_score, 0, 1)
 
     except Exception as e:
