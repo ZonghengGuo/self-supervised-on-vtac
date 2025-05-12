@@ -1,6 +1,6 @@
 import torch
 from nets import *
-from tools import evaluate_raise_threshold
+from tools import evaluate_raise_threshold, evaluation_test
 from sklearn.metrics import roc_auc_score
 import sys
 import numpy as np
@@ -8,6 +8,8 @@ import os
 from tqdm import tqdm
 from scipy.special import expit
 import pandas as pd
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../pre_train')))
+from model import ResNet18
 
 model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
 out_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.csv")
@@ -25,6 +27,12 @@ def max_file_in_directories(path):
     directories = [d for d in os.listdir(path) if os.path.isdir(os.path.join(path, d))]
     for directory in directories:
         full_directory_path = os.path.join(path, directory, "score")
+
+        if not os.path.exists(full_directory_path):
+            print(f"Warning: score folder not found in {directory}, skipping.")
+            max_files[directory] = None
+            continue
+
         files = [f for f in os.listdir(full_directory_path) if os.path.isfile(os.path.join(full_directory_path, f))]
 
         if files:  # If there are files in the directory
@@ -40,11 +48,12 @@ def max_file_in_directories(path):
 
     return max_files
 
-print(run_to_model_path := max_file_in_directories(model_path))
-X_val, y_val, name_val = torch.load("data/out/sample-norm/val.pt")
-X_val = X_val[:, :, 72500:75000].to(torch.device("cuda"))
-X_test, y_test, name_test = torch.load("data/out/sample-norm/test.pt")
-X_test = X_test[:, :, 72500:75000].to(torch.device("cuda"))
+run_to_model_path = max_file_in_directories(model_path)
+print(run_to_model_path)
+X_val, y_val = torch.load("data/out/lead_selected/val.pt", weights_only=True)
+X_val = X_val[:, :, 67500:75000].to(torch.device("cuda"))
+X_test, y_test = torch.load("data/out/lead_selected/test.pt", weights_only=True)
+X_test = X_test[:, :, 67500:75000].to(torch.device("cuda"))
 
 
 def find_best_threshold_parallel(y_pred, y_test):
@@ -95,22 +104,30 @@ val_scores = []
 runs = []
 
 for run, path in tqdm(run_to_model_path.items()):
-    model = CNNClassifier(inputs=4)
+    path = "models/cnn/realtime/models/64-0.0001-0.1-4.0-1/score/45.pt"
+
+    encoder = ResNet18()
+
+    print("Load model successfully!!!")
+
+    model = FinetuneModel(pre_trained_encoder=encoder, num_classes=1)
     model.load_state_dict(torch.load(path, map_location=torch.device("cuda")))
     model = model.eval().to("cuda")
 
-    y_pred_val = model(X_val)
-    y_pred_test = model(X_test)
+    X_val = X_val.float()
+    X_test = X_test.float()
+
+    _, y_pred_val = model(X_val)
+    _, y_pred_test = model(X_test)
 
     thresh, val_score = find_best_threshold_parallel(
         torch.sigmoid(y_pred_val).cpu().detach(), y_val.cpu().detach().numpy()
     )
-    print(thresh, val_score)
+
     types_TP, types_FP, types_TN, types_FN = (0, 0, 0, 0)
-    for pred, gt in zip(y_pred_test, y_test):
-        types_TP, types_FP, types_TN, types_FN = evaluate_raise_threshold(
-            pred, gt, types_TP, types_FP, types_TN, types_FN, thresh
-        )
+    types_TP, types_FP, types_TN, types_FN = evaluation_test(
+        y_pred_test, y_test, types_TP, types_FP, types_TN, types_FN
+    )
 
     acc = 100 * (types_TP + types_TN) / (types_TP + types_TN + types_FP + types_FN)
     score = (
@@ -127,6 +144,7 @@ for run, path in tqdm(run_to_model_path.items()):
     auc = roc_auc_score(y_test.cpu().numpy(), y_pred_test.cpu().detach().numpy())
     f1 = types_TP / (types_TP + 0.5 * (types_FP + types_FN))
     clipboard_data = f"{acc}\t{score}\t{TPR}\t{TNR}\t{ppv}\t{auc}\t{f1}\t\t"
+    print(auc, score)
 
     runs.append(run)
     accs.append(acc)
@@ -151,12 +169,9 @@ data = {
     "ppv": ppvs,
     "f1": f1s,
     "score": scores,
-    "val_score": val_scores,
     "auc": aucs,
     "accuracy": accs,
-    "threshold": thresholds,
 }
-
 
 df = pd.DataFrame(data)
 df.to_csv(out_path, index=False)

@@ -1,5 +1,5 @@
 import torch
-from model import SimSiam, FCN, ResNet50, TransformerEncoder
+from model import ResNet18
 from dataset import SiamDataset
 from torch.utils.data import random_split, DataLoader
 import losses
@@ -12,12 +12,12 @@ import utils
 device = 'cuda'
 
 # Setting
-batch_size = 16
-backbone = "Transformer"
+batch_size = 256
+backbone = "ResNet18"
 pair_data_path = "data/mimic/pair_segments"
 lr = 1e-4
 min_lr = 1e-6
-epochs = 500
+epochs = 1000
 ratio_train_val = 0.9
 model_save_path = "model_saved"
 warmup_epochs = 10
@@ -36,10 +36,16 @@ dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_worker
 
 # ================== building teacher and student models =================
 # Initiate Student and Teacher encoder
-student = TransformerEncoder()
-teacher = TransformerEncoder()
+student = ResNet18()
+teacher = ResNet18()
 
 student, teacher = student.cuda(), teacher.cuda()
+
+total_params = sum(p.numel() for p in teacher.parameters())
+trainable_params = sum(p.numel() for p in teacher.parameters() if p.requires_grad)
+
+print(f"Total parameters: {total_params:,}")
+print(f"Trainable parameters: {trainable_params:,}")
 
 # teacher and student start with the same weights
 teacher.load_state_dict(student.state_dict())
@@ -70,6 +76,7 @@ wd_schedule = utils.cosine_scheduler(
     weight_decay_end,
     epochs, len(dataloader),
 )
+
 # momentum parameter is increased to 1. during training with a cosine schedule
 momentum_schedule = utils.cosine_scheduler(momentum_teacher, 1,
                                            epochs, len(dataloader))
@@ -79,7 +86,7 @@ print(f"Loss, optimizer and schedulers ready.")
 losses_list = []
 
 best_loss = float('inf')
-patience = 15
+patience = 20
 epochs_no_improve = 0
 
 for epoch in range(0, epochs):
@@ -93,6 +100,7 @@ for epoch in range(0, epochs):
                 param_group["weight_decay"] = wd_schedule[batch_idx]
 
         x1, x2 = x1.to("cuda", dtype=torch.float32), x2.to("cuda", dtype=torch.float32)
+
         teacher_output = teacher(x1) # good signal as input of teacher
         student_output = student(x2) # bad signal as input of student
 

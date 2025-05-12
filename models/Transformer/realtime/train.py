@@ -57,7 +57,7 @@ if __name__ == "__main__":
         "adam_weight_decay": 0.005,
         "batch_size": batch_size,
         "max_epoch": 500,
-        "data_length": 2500,
+        "data_length": 7500,
     }
 
     current_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     iterator_test = DataLoader(dataset_eval, **params)
     iterator_heldout = DataLoader(dataset_test, **params)
 
-    model = Transformer(4, dropout=dropout_probability)
+    model = Transformer(2, dropout=dropout_probability)
 
     logger.info(model)
     logger.info(

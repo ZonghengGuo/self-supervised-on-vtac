@@ -15,6 +15,11 @@ import random
 import numpy as np
 import sklearn
 import sys
+from nets import FinetuneModel
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../pre_train')))
+from model import ResNet18
+
 
 if __name__ == "__main__":
     SEED = 1 if len(sys.argv) <= 6 else int(sys.argv[6])
@@ -57,26 +62,24 @@ if __name__ == "__main__":
 
     batch_size = int(sys.argv[1])
     lr = float(sys.argv[2])
-    dl = float(sys.argv[3])
-    dropout_probability = float(sys.argv[4])
-    positive_class_weight = float(sys.argv[5])
+    dropout_probability = float(sys.argv[3])
+    positive_class_weight = float(sys.argv[4])
 
     params_training = {
         "framework": "textcnn",
-        "differ_loss_weight": dl,
         "weighted_class": positive_class_weight,
         "learning_rate": lr,
         "adam_weight_decay": 0.005,
         "batch_size": batch_size,
         "max_epoch": 500,
-        "data_length": 2500,
+        "data_length": 7500,
     }
 
     current_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
 
     # save path of trained model
     tuning_name = (
-        f"{batch_size}-{lr}-{dl}-{dropout_probability}-{positive_class_weight}-{SEED}"
+        f"{batch_size}-{lr}-{dropout_probability}-{positive_class_weight}-{SEED}"
     )
 
     model_path = os.path.join(
@@ -127,7 +130,17 @@ if __name__ == "__main__":
     iterator_test = DataLoader(dataset_eval, **params)
     iterator_heldout = DataLoader(dataset_test, **params)
 
-    model = CNNClassifier(inputs=num_channels, dropout=dropout_probability)
+    encoder = ResNet18()
+
+    checkpoint = torch.load("../../../model_saved/ResNet18_teacher.pth")
+    encoder.load_state_dict(checkpoint["model_state_dict"])
+
+    print("Load model successfully!!!")
+
+    for param in encoder.parameters():
+        param.requires_grad = True
+
+    model = FinetuneModel(pre_trained_encoder=encoder, num_classes=1)
 
     logger.info(model)
     logger.info(
@@ -159,26 +172,23 @@ if __name__ == "__main__":
 
     for t in range(1, 1 + num_epochs):
         train_loss = 0
-        differ_loss_val = 0
         model = model.train()
         train_TP, train_FP, train_TN, train_FN = 0, 0, 0, 0
 
         for b, batch in enumerate(
             iterator_train, start=1
         ):  # signal_train, alarm_train, y_train, signal_test, alarm_test, y_test = batch
-            loss, differ_loss, Y_train_prediction, y_train = train_model(
+            loss, Y_train_prediction, y_train = train_model(
                 batch,
                 model,
                 loss_ce,
                 device,
-                weight=params_training["differ_loss_weight"],
+                weight=0,
             )
 
             # print("Y_train_prediction", Y_train_prediction)
 
             train_loss += loss.item()
-            differ_loss_val += differ_loss.item()
-            loss += differ_loss
 
             # Zero out gradient, else they will accumulate between epochs
             optimizer.zero_grad()
@@ -189,7 +199,6 @@ if __name__ == "__main__":
             # Update parameters
             optimizer.step()
         train_loss /= b
-        differ_loss_val /= b
 
         eval_loss = 0
         model = model.eval()
@@ -248,11 +257,9 @@ if __name__ == "__main__":
 
         logger.info(
             "total_loss: "
-            + str(round(train_loss + differ_loss_val, 5))
+            + str(round(train_loss, 5))
             + " train_loss: "
             + str(round(train_loss, 5))
-            + " differ_loss: "
-            + str(round(differ_loss_val, 5))
             + " eval_loss: "
             + str(round(eval_loss, 5))
         )

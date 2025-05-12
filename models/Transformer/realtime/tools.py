@@ -54,7 +54,7 @@ class Dataset_train(Dataset):
 def train_model(batch, model, loss_ce, device, weight):
     signal_train, y_train = batch
     # use the last 10s signal as model input
-    signal_train = signal_train[:, :, 72500:75000].contiguous().to(torch.float32).to(device)
+    signal_train = signal_train[:, :, 67500:75000].contiguous().to(torch.float32).to(device)
     y_train = y_train.view(-1, 1).float().to(device)
     # model prediction, feature of alarm signal, feature of randomly selected signal
     _,Y_train_prediction = model(signal_train)
@@ -65,9 +65,8 @@ def train_model(batch, model, loss_ce, device, weight):
 
 def eval_model(batch, model, loss_ce, device):
     signal_train, y_train = batch
-    length = 2500
     # alarm signa
-    signal_train = signal_train[:, :, 72500:75000].contiguous().to(torch.float32).to(device)
+    signal_train = signal_train[:, :, 67500:75000].contiguous().to(torch.float32).to(device)
 
     y_train = y_train.view(-1, 1).float().to(device)
 
@@ -152,9 +151,8 @@ def evaluate_raise_threshold(
 
 def eval(batch, model, device):
     signal_train, y_train = batch
-    length = 2500
 
-    signal_train = signal_train[:, :, 72500:75000].contiguous().to(torch.float32).to(device)
+    signal_train = signal_train[:, :, 67500:75000].contiguous().to(torch.float32).to(device)
 
     y_train = y_train.float().to(device)
     model = model.to(torch.float32)

@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 
+# chan_1 = 128, chan_2 = 256, chan_3 = 128
+# ks1 = 51, ks2 = 25, ks3 = 13
+# pd1 = 25, pd2 = 12, pd3 = 6
 
 class FCN(nn.Module):
     def __init__(

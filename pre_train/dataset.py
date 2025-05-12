@@ -63,7 +63,6 @@ class SiamDataset:
         return torch.tensor(x1, dtype=torch.float32), torch.tensor(x2, dtype=torch.float32)
 
 
-
 # Demo
 if __name__ == '__main__':
     dataset = SiamDataset("pre_train/pre_train_setting.json")

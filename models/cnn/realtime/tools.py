@@ -55,78 +55,26 @@ class Dataset_train(Dataset):
 
 def train_model(batch, model, loss_ce, device, weight):
     signal_train, y_train = batch
-    batch_size = len(signal_train)
-    length = 2500
-    # samples with a true alarm
-    true_alarm_index = (y_train == 1)
-    # samples with a false alarm
-    false_alarm_index = (y_train != 1)
-
-    true_alarm_batch = sum(true_alarm_index)
-    false_alarm_batch = sum(false_alarm_index)
-
-    # randomly select the start of a sequence for each sample in this batch
-    sample_index = np.random.choice(75000 - length * 2, batch_size, True)
-    random_s = []
-    for i, j in enumerate(sample_index):
-        random_s.append(signal_train[i, :, j : j + length])
-    random_s = torch.stack(random_s).to(device)
-    random_s = random_s.to(torch.float32)
-
+    # y_train = y_train.unsqueeze(1)
     # use the last 10s signal as model input
-    signal_train = signal_train[:, :, 72500:75000].contiguous().to(torch.float32).to(device)
+    signal_train = signal_train[:, :, 67500:75000].float().to(device)
     y_train = y_train.float().view(-1, 1).to(device)
-
-    model = model.to(torch.float32)
-
     # model prediction, feature of alarm signal, feature of randomly selected signal
-    Y_train_prediction, s_f, random_s = model(signal_train, random_s)
-
-    feature_size = s_f.shape[1]
+    _, Y_train_prediction = model(signal_train)
     # calculate loss
     loss = loss_ce(Y_train_prediction, y_train)
-
-    # feature of randomly selected signal from a sample with a true alarm
-    true_random_s = random_s[true_alarm_index]
-    # feature of randomly selected signal from a sample with a false alarm
-    false_random_s = random_s[false_alarm_index]
-
-    # feature of alarm signal from a sample with a true alarm
-    true_s_f = s_f[true_alarm_index]
-    # feature of alarm signal from a sample with a false alarm
-    false_s_f = s_f[false_alarm_index]
-
-    # calculate discriminative constraints
-    differ_loss = -torch.mean(
-        F.logsigmoid(
-            torch.bmm(
-                false_s_f.view(false_alarm_batch, 1, feature_size),
-                false_random_s.view(false_alarm_batch, feature_size, 1),
-            )
-        )
-    )
-    differ_loss += -torch.mean(
-        F.logsigmoid(
-            -torch.bmm(
-                true_s_f.view(true_alarm_batch, 1, feature_size),
-                true_random_s.view(true_alarm_batch, feature_size, 1),
-            )
-        )
-    )
-
-    return loss, weight * differ_loss, Y_train_prediction, y_train
+    return loss, Y_train_prediction, y_train
 
 
 def eval_model(batch, model, loss_ce, device):
     signal_train, y_train = batch
-    length = 2500
     # alarm signa
-    signal_train = signal_train[:, :, 72500:75000].to(torch.float32).to(device)
+    signal_train = signal_train[:, :, 67500:75000].float().to(device)
 
     y_train = y_train.float().view(-1, 1).to(device)
 
     # prediction
-    Y_train_prediction = model(signal_train)
+    _, Y_train_prediction = model(signal_train)
 
     loss = loss_ce(Y_train_prediction, y_train)
 
@@ -204,12 +152,11 @@ def evaluate_raise_threshold(
 
 def eval(batch, model, device):
     signal_train, y_train = batch
-    length = 2500
 
-    signal_train = signal_train[:, :, 72500:75000].to(device)
+    signal_train = signal_train[:, :, 67500:75000].float().to(device)
 
     y_train = y_train.to(device)
 
-    Y_train_prediction = model(signal_train)
+    _, Y_train_prediction = model(signal_train)
 
     return Y_train_prediction, y_train

@@ -15,7 +15,7 @@ class Transformer(nn.Module):
         self.encoderlayer=nn.TransformerEncoderLayer(d_model=128, nhead=8,dim_feedforward=1024,dropout=self.dropout)
         self.encoder=nn.TransformerEncoder(self.encoderlayer, num_layers=6)
         
-        self.conv = nn.Conv1d(2500, 1, 1)
+        self.conv = nn.Conv1d(7500, 1, 1)
         self.gelu = nn.GELU()
         self.pos_encoder = PositionalEncoding(128, dropout=self.dropout, max_len=3750)
         self.classifier = nn.Sequential(

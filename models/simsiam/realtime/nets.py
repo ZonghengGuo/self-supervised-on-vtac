@@ -55,20 +55,16 @@ import torch.nn as nn
 #         return self.classifier(s_f)
 
 class FinetuneModel(nn.Module):
-    def __init__(self, pretrained_fcn_encoder, num_classes):
+    def __init__(self, pre_trained_encoder, num_classes):
         super(FinetuneModel, self).__init__()
-        self.encoder = pretrained_fcn_encoder
+        self.encoder = pre_trained_encoder
         self.classifier = nn.Linear(64, num_classes)
 
-    def forward(self, x, random_s=None):
+    def forward(self, x):
         # 主输入
-        features = self.encoder.extract_features(x)  # 特征 shape: (B, 64)
+        features = self.encoder(x)  # 特征 shape: (B, 64)
         logits = self.classifier(features)
 
-        if random_s is not None:
-            features_random = self.encoder.extract_features(random_s)
-            return logits, features, features_random
-
-        return logits
+        return features, logits
 
 
